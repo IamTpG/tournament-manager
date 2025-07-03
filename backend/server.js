@@ -40,12 +40,11 @@ app.post('/generate-matches', async(req,res)=>{
         
         if(players.length < numberOfPlayers) {
             
-            return res.status(400).json({message:"Không đủ người để tạo bảng đấu,"});
+            return res.status(400).json({message:"Need more players to create bracket!"});
         }
         
         //SHUFFLED THE LIST
-        const shuffled = players.map(p =>p.ID).sort(()=> Math.random()- 0.5); //Không hiểu nghĩa câu lệnh này cho lắm
-
+        const shuffled = players.map(p =>p.ID).sort(()=> Math.random()- 0.5); 
         //MAKE PAIR
         const MatchList =[];
         for(let i = 0; i < shuffled.length; i+=2) {
@@ -57,10 +56,10 @@ app.post('/generate-matches', async(req,res)=>{
             await newMatch.save(); //save vào đâu -> save vào collection matches
             MatchList.push(newMatch);
         }
-        res.status(201).json({message:"Tạo bảng đấu thành công", matches:MatchList});
+        res.status(201).json({message:"Bracket created successfully", matches:MatchList});
     }
     catch(error) {
-        res.status(500).json({error:'Lỗi khi tạo bảng đấu',details: error.message});
+        res.status(500).json({error:'Errors happen creating bracket',details: error.message});
     }
 });
 // http://localhost:3000/tournament
@@ -74,12 +73,12 @@ app.post('/tournament',async(req,res) => {
             end_date : endDate
         })
         newTournament.save();
-        res.status(201).json({message:"Tạo tournament thành công",tournament:newTournament});
+        res.status(201).json({message:"Tournament created successfully",tournament:newTournament});
     }
     catch(error) {
-        res.status(500).json({error:'Lỗi khi tạo tournament', details: error.message});
+        res.status(500).json({error:'Errors happen creating bracket', details: error.message});
     }
 }
 );
 const PORT = 3000;     
-app.listen(PORT, ()=>  console.log(`Server chạy tại http://localhost:${PORT}`));
+app.listen(PORT, ()=>  console.log(`Server running at: http://localhost:${PORT}`));
