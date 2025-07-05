@@ -6,8 +6,14 @@ const {
     getRegistersStatus
 } = require('../controllers/registrationControllers');
 
-user_router.post('/:tournament_id/register', createRegistration);
+const {
+    filterTournaments
+} = require('../controllers/tournamentControllers');
 
-user_router.get('/:tournament_id/:status', getRegistersStatus);
+user_router.post('/registration/:tournament_id/register', createRegistration);
+
+user_router.get('/registration/:tournament_id/:status', getRegistersStatus);
+
+user_router.get('/tournament/filter', filterTournaments);
 
 module.exports = user_router;

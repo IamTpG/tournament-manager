@@ -1,8 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
+
 const user_routes = require('./routes/userRoutes');
-const connectDatabaseFunction = require('./config/database');
 const admin_routes = require('./routes/adminRoutes');
+
+const connectDatabaseFunction = require('./config/database');
 
 const app = express();
 app.use(express.json()); // Allow web to understand JSON data

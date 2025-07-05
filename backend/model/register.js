@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const registration_form_schema = new mongoose.Schema({
+const register_schema = new mongoose.Schema({
     tournament_id: String,
     full_name: String,
     phone_number: String,
@@ -18,4 +18,4 @@ const registration_form_schema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('register', registration_form_schema)
+module.exports = mongoose.model('register', register_schema)

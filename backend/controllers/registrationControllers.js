@@ -1,7 +1,14 @@
 const register_model = require('../model/register'); // Get model to access database
 
 /**
- * Function to take and save registration data
+ * Function to create registration
+ * @param {Object} req.body includes full_name, phone_number, email, name_in_tournament, status (set 'null' for default value), registed_date (set 'null' for default value)
+ * @param {Object} req.params includes tournament_id
+ * 
+ * @returns {Object} JSON response with register data or error message
+ * 
+ * @example
+ * // POST /api/registration/:tournament_id/register
  */
 const createRegistration = async (req, res) => {
     const {
@@ -9,39 +16,53 @@ const createRegistration = async (req, res) => {
         req_phone_number,
         req_personal_id,
         req_email,
-        req_name_in_tournament
+        req_name_in_tournament,
+        req_status,
+        req_registered_date
     } = req.body;
 
     const req_tournament_id = req.params.tournament_id;
 
     try {
-        const registration = new register_model({
+        const new_registration = new register_model({
             tournament_id: req_tournament_id,
             full_name: req_full_name,
             phone_number: req_phone_number,
             personal_id: req_personal_id,
             email: req_email,
             name_in_tournament: req_name_in_tournament,
-            status: 'pending',
-            registered_date: Date.now()
+            status: req_status,
+            registered_date: req_registered_date
         });
 
-        await registration.save();
-        console.log('Saved!')
+        // If the values is null -> delete the value to automatically set the default value for this key
+        Object.keys(new_registration).forEach(
+            key => (new_registration[key] == null) && delete new_registration[key]
+        );
+
+        await new_registration.save();
+        console.log('Registration saved!')
+
         res.status(201).json({
-            message: 'Registration submitted',
-            data: registration
-        })
+            message: 'Registration submitted!',
+            data: new_registration
+        });
     } catch (error) {
+        console.log('[ERROR][createRegistration]: ', error);
         res.status(500).json({
-            message: 'Failed to register'
+            message: 'Failed to register!'
         });
     }
 };
 
 /**
- * Function to get the registers from database by using tournament ID and status
- * with endpoints /:tournament_id/registration/:status
+ * Function to get the registers by status (admin)
+ * @param {Object} req.params includes tournament_id, status ('all', 'pending', 'accepted', 'denied')
+ * 
+ * @returns {Object} JSON response with list of registers or error message
+ * 
+ * @example
+ * // GET /api/admin/registration/EChess/denied 
  */
 const getRegistersByTournamentAndStatus = async (req, res) => {
     const {tournament_id, status} = req.params;
@@ -88,6 +109,7 @@ const getRegistersByTournamentAndStatus = async (req, res) => {
 
         res.status(200).json(formatted_filtered_registers);
     } catch(error) {
+        console.log('[ERROR][getRegistersByTournamentAndStatus]: ', error);
         res.status(500).json({
             message: 'Failed to fetch data'
         });
@@ -96,11 +118,17 @@ const getRegistersByTournamentAndStatus = async (req, res) => {
 
 
 /**
- * Function to update a status of a register by tournament ID and personal ID
- * with endpoints /:tournament_id/status
+ * Function to update a status of a register by using personal ID
+ * @param {Object} req.params includes tournament_id
+ * @param {Object} req.body includes personal_id, status
+ * 
+ * @returns {Object} JSON response with a data of updated register or error message
+ * 
+ * @example
+ * // PUT api/admin/registration/EChess/update-status
  */
-const updateStatusOfRegisters = async (req, res) => {
-    const tournament_id_field = req.params.tournament_id;
+const updateStatusOfRegister = async (req, res) => {
+    const req_tournament_id = req.params.tournament_id;
     const {req_personal_id, req_status} = req.body;
 
     // Check the value of status
@@ -113,14 +141,14 @@ const updateStatusOfRegisters = async (req, res) => {
 
     try {
         const updated_register = await register_model.findOneAndUpdate (
-            {tournament_id: tournament_id_field, personal_id: req_personal_id},
+            {tournament_id: req_tournament_id, personal_id: req_personal_id},
             {$set: {status: req_status}}
         )
 
         if (updated_register) {
             res.status(200).json({
                 message: `Register with ID ${req_personal_id} updated successfully`,
-                // data: updated_register
+                data: updated_register
             });
         } else {
             res.status(404).json({
@@ -129,6 +157,7 @@ const updateStatusOfRegisters = async (req, res) => {
         }
 
     } catch (error) {
+        console.log('[ERROR][updateStatusOfRegister]: ', error);
         res.status(500).json({
             message: 'Failed to update status'
         });
@@ -136,8 +165,13 @@ const updateStatusOfRegisters = async (req, res) => {
 };
 
 /**
- * Function to view all the registers' status in a tournament
- * with endpoints /:tournament_id/:status
+ * Function to get the registers by status (user)
+ * @param {Object} req.params includes tournament_id, status ('all', 'pending', 'accepted', 'denied')
+ * 
+ * @returns {Object} JSON response with list of registers or error message
+ * 
+ * @example
+ * // GET /api/admin/registration/EChess/denied 
  */
 const getRegistersStatus = async (req, res) => {
     const {
@@ -180,10 +214,11 @@ const getRegistersStatus = async (req, res) => {
             });
         }
     } catch (error) {
+        console.log('[ERROR][getRegistersStatus]: ', error);
         res.status(500).json({
             message: 'Failed to fetch status'
         });
     }
 }
 
-module.exports = {createRegistration, getRegistersByTournamentAndStatus, updateStatusOfRegisters, getRegistersStatus};
+module.exports = {createRegistration, getRegistersByTournamentAndStatus, updateStatusOfRegister, getRegistersStatus};
