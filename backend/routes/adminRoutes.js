@@ -21,6 +21,14 @@ const {
     getArticlesByGame
 } = require('../controllers/articleControllers');
 
+const {
+    createHighlight,
+    getAllHighlights
+} = require('../controllers/highlightControllers')
+admin_router.post('highlight/create-highlight',createHighlight);
+
+admin_router.get('highlight/get-highlights',getAllHighlights);
+
 admin_router.post('/article/create-article',createArticle);
 
 admin_router.get('/article/get-all-articles',getAllArticles);
