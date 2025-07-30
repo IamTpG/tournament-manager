@@ -1,8 +1,10 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 
 const user_routes = require('./routes/userRoutes');
 const admin_routes = require('./routes/adminRoutes');
+const auth_routes = require('./routes/authRoutes')
 
 const connectDatabaseFunction = require('./config/database');
 
@@ -11,6 +13,7 @@ app.use(express.json()); // Allow web to understand JSON data
 
 app.use('/api', user_routes);
 app.use('/api/admin', admin_routes);
+app.use('/api/auth', auth_routes);
 
 const PORT = 3000;
 
