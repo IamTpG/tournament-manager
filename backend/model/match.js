@@ -1,14 +1,30 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const match_schema = new mongoose.Schema({
-    
-    first_player: String,
-    second_player: String,
-    tournament_ID: String,
-    occurence_day: {
-        type: Date,
-        default: Date.now
-    } 
+  id: {
+    type: String,
+    required: true,
+    unique: true // đảm bảo không trùng
+  },
+  tournament_ID: {
+    type: String,
+    required: true
+  },
+  format: String,
+  players: [String], // Danh sách ID người chơi
+  results: [
+    {
+      player: String, // cũng là ID người chơi
+      score: {
+        type: Number,
+        default: 0
+      }
+    }
+  ],
+  occurence_day: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 module.exports = mongoose.model('match', match_schema);

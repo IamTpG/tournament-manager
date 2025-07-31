@@ -9,7 +9,7 @@ const jwt = require('jsonwebtoken');
  * @param {Object} res - Express response object
  * @returns {Object} JSON containing the JWT token or an error message
  */
-exports.login = async (req, res) => {
+const login = async (req, res) => {
     const { username, password } = req.body;
 
     try {
@@ -34,3 +34,5 @@ exports.login = async (req, res) => {
         res.status(500).json({message: 'Server error'});
     }
 };
+
+modules.export = {login};

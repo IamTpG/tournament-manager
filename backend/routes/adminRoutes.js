@@ -4,7 +4,6 @@ const {
     verifyToken
 } = require('../middleware/verifyToken');
 
-
 const {
     verifyRole
 } = require('../middleware/verifyRole');
@@ -22,6 +21,31 @@ const {
 const {
     createMatches
 } = require('../controllers/matchControllers');
+
+const {
+    createArticle,
+    getAllArticles,
+    getArticlesByGame
+} = require('../controllers/articleControllers');
+
+const {
+    createHighlight,
+    getAllHighlights
+} = require('../controllers/highlightControllers')
+
+
+// Highlights management
+admin_router.post('highlight/create-highlight',createHighlight);
+
+admin_router.get('highlight/get-highlights',getAllHighlights);
+
+
+// Articles management
+admin_router.post('/article/create-article',createArticle);
+
+admin_router.get('/article/get-all-articles',getAllArticles);
+
+admin_router.get('/article/get-articles-by-game',getArticlesByGame);
 
 
 // Participants management

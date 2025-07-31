@@ -1,104 +1,108 @@
 const tournament_model = require('../model/tournament');
 
-
 /**
- * Function to create tournament
- * @param {Object} req.body includes tournament_id, tournament_name, game_name, start_date (set 'null' for default value), end_date (set 'null' for default value)
- * 
- * @returns {Object} JSON response with tournament data or error message
+ * Function to create a tournament
+ * @param {Object} req.body includes game, title, format, description, participants (array), start_date (nullable), end_date (nullable)
  * 
  * @example
  * // POST /api/admin/tournament/create-tournament
  */
 const createTournament = async (req, res) => {
-    console.log(req.body);
-    
     const {
-        req_tour_id,
-        req_tour_name,
-        req_game_name,
-        req_start_date,
-        req_end_date
+        id,
+        game,
+        title,
+        format,
+        description,
+        participants,
+        start_date,
+        end_date
     } = req.body;
 
     try {
+        // Kiểm tra id đã tồn tại chưa
+        const existingTournament = await tournament_model.findOne({ id });
+        if (existingTournament) {
+            return res.status(409).json({
+                message: `Tournament with id "${id}" already exists`
+            });
+        }
+
         const tournament_data = {
-            tournament_id: req_tour_id,
-            tournament_name: req_tour_name,
-            game_name: req_game_name,
-            start_date: req_start_date,
-            end_date: req_end_date
+            id,
+            game,
+            title,
+            format,
+            description,
+            participants,
+            start_date,
+            end_date
         };
 
-        // If the values is null -> delete the value to automatically set the default value for this key
+        // Xoá field null để schema dùng default
         Object.keys(tournament_data).forEach(
             key => (tournament_data[key] == null) && delete tournament_data[key]
         );
 
         const new_tournament = new tournament_model(tournament_data);
-
         await new_tournament.save();
-        console.log('Tournament saved!');
 
+        console.log('Tournament saved!');
         res.status(201).json({
             message: 'Tournament created!',
             data: new_tournament
         });
+
     } catch (error) {
         console.log('[ERROR][createTournament]: ', error);
         res.status(500).json({
-            message: 'Failed to create!'
+            message: 'Failed to create tournament'
         });
     }
 };
 
-
 /**
- * Function to filter the tournaments by game name or date (start_date <= date <= end_date)
- * @param {Object} req.query includes game_name and date
- * 
- * @returns {Object} JSON response with list of filtered tournaments or error message
+ * Function to filter tournaments by game or a date inside tournament duration
+ * @param {Object} req.query includes game and/or date (YYYY-MM-DD)
  * 
  * @example
- * // POST /api/admin/tournament/filter?game_name=EChess&date=2025-07-01
+ * // GET /api/admin/tournament/filter?game=Chess&date=2025-07-01
  */
 const filterTournaments = async (req, res) => {
-    const {
-        game_name,
-        date
-    } = req.query;
-
-    const filter = {};
-
-    if (game_name) {
-        filter.game_name = game_name;
-    }
-
-    if (date) {
-        const filter_date = new Date(date);
-
-        filter.start_date = {$lte: filter_date};
-        filter.end_date = {$gte: filter_date};
-    }
+    const { game, date } = req.query;
 
     try {
-        const filtered_tournaments = await tournament_model.find(
-            filter,
-            {
-                _id: false,
-                __v: false
-            }
-        );
-        
-        res.status(200).json({
-            data: filtered_tournaments
+        const filter = {};
+
+        if (game) {
+            filter.game = game;
+        }
+
+        if (date) {
+            const filter_date = new Date(date);
+            filter.start_date = { $lte: filter_date };
+            filter.end_date = { $gte: filter_date };
+        }
+
+        const results = await tournament_model.find(filter, {
+            __v: false
         });
+
+        console.log('Filtered tournaments fetched!');
+        res.status(200).json({
+            message: 'Tournaments fetched!',
+            data: results
+        });
+
     } catch (error) {
         console.log('[ERROR][filterTournaments]: ', error);
         res.status(500).json({
-            message: 'Failed to fetch data'
+            message: 'Failed to fetch tournaments!'
         });
     }
 };
 
-module.exports = {createTournament, filterTournaments};
+module.exports = {
+    createTournament,
+    filterTournaments
+};

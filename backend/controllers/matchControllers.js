@@ -1,68 +1,131 @@
-const match_model = require('../model/match')
-const register_model = require('../model/register')
+const match_model = require('../model/match');
+const tournament_model = require('../model/tournament')
+const register_model = require('../model/register');
 
 /**
- * Function to create match
- * @param {Object} req.body includes number of players need to create bracket
- * @param {Object} req.params includes tournament_id
+ * Create matches for a tournament with auto-detected players_per_match if missing.
  * 
- * @returns {Object} JSON response with matches data or error message
- * 
- * @example
- * // POST /api/admin/EChess/matches/create-matches
+ * @param {String} req.params.tournament_id
+ * @param {Object} req.body includes:
+ *   - game: e.g., "pubg", "tft", "echecs"
+ *   - format: "ranking" | "1v1"
+ *   - players_per_match: optional (will be auto-detected)
  */
 const createMatches = async (req, res) => {
-    const {
-        number_of_players
-    } = req.body;
-
-    const tournament_id = req.params.tournament_id;
+    const { id, tournament_ID } = req.body;
 
     try {
-        const accepted_players = await register_model.find({
-            tournament_id: tournament_id,
-            status: 'accepted'
-        }).limit(number_of_players);
-
-        if (accepted_players.length < number_of_players) {
-            return res.status(400).json({
-                message: `Only ${accepted_players.length} accepted players found. Need at least ${number_of_players}.`
-            })
+        // 1. Validate tournament existence
+        const tournament = await tournament_model.findOne({ id: tournament_ID }); 
+        if (!tournament) {
+            return res.status(404).json({ message: 'Tournament not found' });
         }
 
-        const suffled_players = accepted_players
-            .map(player => player._id)
-            .sort(() => Math.random() - 0.5);
+        // 2. Fetch approved players
+        const players = await register_model.find({
+            tournament: tournament_ID,
+            status: 'pending'
+        });
 
-        const matches = [];
-
-        // Pair players into matches
-        for (let i = 0; i < suffled_players.length - 1; i += 2) {
-            const match = new match_model({
-                first_player: suffled_players[i],
-                second_player: suffled_players[i + 1],
-                tournament_id: tournament_id
-            });
-
-            await match.save();
-            matches.push(match);
+        if (players.length < tournament.participants) {
+            const missing = tournament.participants - players.length;
+            return res.status(400).json({ message: `Not enough approved players. Need ${missing} more.` });
         }
 
-        if (suffled_players.length % 2 !== 0) {
-            console.log(`Player ${accepted_players[accepted_players.length - 1]} has no opponent and is removed automatically.`);
+        const game = tournament.game.toLowerCase();
+        const createdMatches = [];
+
+        // 3. Game-specific match creation
+        switch (game) {
+            case 'pubg': {
+                const playerIDs = players.map(p => p.id);
+                const match = new match_model({
+                    id,
+                    tournament_ID,
+                    format: tournament.format,
+                    players: playerIDs,
+                    results: playerIDs.map(pid => ({ player: pid }))
+                });
+                await match.save();
+                createdMatches.push(match);
+                break;
+            }
+
+            case 'tft': {
+                const shuffled = players.sort(() => 0.5 - Math.random());
+                const groupSize = 8;
+                let matchIndex = 1;
+
+                for (let i = 0; i < shuffled.length; i += groupSize) {
+                    const group = shuffled.slice(i, i + groupSize);
+                    const ids = group.map(p => p.id);
+                    const matchID = `${id}_g${matchIndex}`;
+                    const match = new match_model({
+                        id: matchID,
+                        tournament_ID,
+                        format: tournament.format,
+                        players: ids,
+                        results: ids.map(pid => ({ player: pid }))
+                    });
+                    await match.save();
+                    createdMatches.push(match);
+                    matchIndex++;
+                }
+                break;
+            }
+
+            case 'street_fighter': {
+                if (players.length % 2 !== 0) {
+                    return res.status(400).json({ message: 'Street Fighter requires even number of players.' });
+                }
+
+                const shuffled = players.sort(() => 0.5 - Math.random());
+                let matchIndex = 1;
+
+                for (let i = 0; i < shuffled.length; i += 2) {
+                    const pair = [shuffled[i], shuffled[i + 1]];
+                    const ids = pair.map(p => p.id);
+                    const matchID = `${id}_m${matchIndex}`;
+                    const match = new match_model({
+                        id: matchID,
+                        tournament_ID,
+                        format: tournament.format,
+                        players: ids,
+                        results: ids.map(pid => ({ player: pid }))
+                    });
+                    await match.save();
+                    createdMatches.push(match);
+                    matchIndex++;
+                }
+                break;
+            }
+
+            default: {
+                return res.status(400).json({ message: `Unsupported game: ${game}` });
+            }
         }
 
+        console.log(`[MATCH CREATED] Total matches: ${createdMatches.length}`);
         res.status(201).json({
-            message: 'Bracket created!',
-            data: matches
+            message: 'Match(es) created successfully',
+            data: createdMatches
         });
 
     } catch (error) {
-        console.log('[ERROR][createMatch]: ', error);
-        res.status(500).json({
-            message: 'Failed to create!'
-        });
+        console.error('[ERROR][createMatches]: ', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 };
 
-module.exports = {createMatches};
+/**
+ * Split array into chunks of a given size.
+ */
+function splitIntoGroups(array, size) {
+    const result = [];
+    for (let i = 0; i < array.length; i += size) {
+        result.push(array.slice(i, i + size));
+    }
+    return result;
+}
+
+module.exports = { createMatches };
