@@ -1,5 +1,5 @@
 const register_model = require('../model/register'); // Get model to access database
-
+const tournament_model = require('../model/tournament')
 /**
  * Function to create registration
  * @param {Object} req.body includes full_name, phone_number, email, name_in_tournament, status (set 'null' for default value), registed_date (set 'null' for default value)
@@ -11,47 +11,61 @@ const register_model = require('../model/register'); // Get model to access data
  * // POST /api/registration/:tournament_id/register
  */
 const createRegistration = async (req, res) => {
-    const {
-        req_full_name,
-        req_phone_number,
-        req_personal_id,
-        req_email,
-        req_name_in_tournament,
-        req_status,
-        req_registered_date
-    } = req.body;
-
-    const req_tournament_id = req.params.tournament_id;
-
     try {
-        const new_registration = new register_model({
-            tournament_id: req_tournament_id,
-            full_name: req_full_name,
-            phone_number: req_phone_number,
-            personal_id: req_personal_id,
-            email: req_email,
-            name_in_tournament: req_name_in_tournament,
-            status: req_status,
-            registered_date: req_registered_date
+        const players = req.body;
+
+        if (!Array.isArray(players)) {
+            return res.status(400).json({ message: 'Expected an array of players' });
+        }
+
+        const results = [];
+
+        for (const playerData of players) {
+            const { id, full_name, phone, email, name_in_tournament, tournament } = playerData;
+
+            // Validate required fields
+            if (!id || !tournament) {
+                results.push({ id, status: 'failed', reason: 'Missing id or tournament' });
+                continue;
+            }
+
+            // Check if tournament exists
+            const existingTournament = await tournament_model.findOne({ id: tournament });
+            if (!existingTournament) {
+                results.push({ id, status: 'failed', reason: 'Tournament not found' });
+                continue;
+            }
+
+            // Check if player already registered for this tournament
+            const existingPlayer = await register_model.findOne({ id, tournament });
+            if (existingPlayer) {
+                results.push({ id, status: 'failed', reason: 'Player already exists in tournament' });
+                continue;
+            }
+
+            // Create and save new player
+            const newPlayer = new register_model({
+                id,
+                full_name,
+                phone,
+                email,
+                name_in_tournament,
+                tournament,
+                register_date: new Date()  // optional: new Date() or undefined to let schema handle
+            });
+
+            await newPlayer.save();
+            results.push({ id, status: 'success' });
+        }
+
+        res.status(207).json({
+            message: 'Processed players',
+            results
         });
 
-        // If the values is null -> delete the value to automatically set the default value for this key
-        Object.keys(new_registration).forEach(
-            key => (new_registration[key] == null) && delete new_registration[key]
-        );
-
-        await new_registration.save();
-        console.log('Registration saved!')
-
-        res.status(201).json({
-            message: 'Registration submitted!',
-            data: new_registration
-        });
     } catch (error) {
-        console.log('[ERROR][createRegistration]: ', error);
-        res.status(500).json({
-            message: 'Failed to register!'
-        });
+        console.error('[ERROR][createMultiplePlayers]:', error);
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -65,51 +79,40 @@ const createRegistration = async (req, res) => {
  * // GET /api/admin/registration/EChess/denied 
  */
 const getRegistersByTournamentAndStatus = async (req, res) => {
-    const {tournament_id, status} = req.params;
+    const { tournament_id, status } = req.params;
 
-    // Check the value of status
-    const status_valid_values = ['all', 'pending', 'accepted', 'denied'];
-    if (status_valid_values.includes(status) === false) {
+    // Trạng thái hợp lệ
+    const status_valid_values = ['all', 'pending', 'approved', 'denied'];
+    if (!status_valid_values.includes(status)) {
         return res.status(400).json({
             message: 'Invalid value of status'
         });
     }
 
     try {
-        let filtered_registers = null;
-        if (status === 'all') {
-            filtered_registers = await register_model.find({
-                tournament_id: tournament_id
-            },
-            {
-                _id: false,
-                __v: false,
-                tournament_id: false
-            });
-        } else {
-            filtered_registers = await register_model.find({
-                tournament_id: tournament_id,
-                status: status
-            },
-            {
-                _id: false,
-                __v: false,
-                tournament_id: false
-            });
+        const filter = { tournament: tournament_id };
+        if (status !== 'all') {
+            filter.status = status;
         }
 
-        const formatted_filtered_registers = filtered_registers.map(reg => ({
-            full_name: reg.full_name,
-            phone_number: reg.phone_number,
-            personal_id: reg.personal_id,
-            email: reg.email,
-            name_in_tournament: reg.name_in_tournament,
-            registered_date: reg.registered_date.toLocaleDateString('en-GB')
+        const players = await register_model.find(filter, {
+            _id: 0,
+            __v: 0,
+            tournament: 0
+        });
+
+        const formatted = players.map(p => ({
+            full_name: p.full_name,
+            phone: p.phone,
+            id: p.id,
+            email: p.email,
+            name_in_tournament: p.name_in_tournament,
+            register_date: p.register_date?.toLocaleDateString('en-GB') || null
         }));
 
-        res.status(200).json(formatted_filtered_registers);
-    } catch(error) {
-        console.log('[ERROR][getRegistersByTournamentAndStatus]: ', error);
+        res.status(200).json(formatted);
+    } catch (error) {
+        console.error('[ERROR][getRegistersByTournamentAndStatus]: ', error);
         res.status(500).json({
             message: 'Failed to fetch data'
         });

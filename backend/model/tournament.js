@@ -1,9 +1,18 @@
 const mongoose = require('mongoose')
 
 const tournament_schema = new mongoose.Schema({
-    tournament_id: String,
-    tournament_name: String,
-    game_name: String,
+    id: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    game: String,
+    title: String,
+    description: String,
+    participants: {
+        type: Number,
+        min: 2
+    },
     start_date: {
         type: Date,
         default: Date.now

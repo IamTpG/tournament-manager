@@ -16,6 +16,13 @@ const {
 } = require('../controllers/articleControllers');
 
 
+const {
+    getAllHighlights
+} = require('../controllers/highlightControllers');
+
+
+user_router.get('highlight/get-highlights',getAllHighlights);
+
 user_router.get('/article/get-all-articles',getAllArticles);
 
 user_router.get('/article/get-articles-by-game',getArticlesByGame);

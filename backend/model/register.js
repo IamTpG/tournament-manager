@@ -1,21 +1,14 @@
 const mongoose = require('mongoose')
 
 const register_schema = new mongoose.Schema({
-    tournament_id: String,
-    full_name: String,
-    phone_number: String,
-    personal_id: String,
-    email: String,
+    full_name :String,
+    phone : String,
+    id : String,
+    email : String,
     name_in_tournament: String,
-    status: {
-        type: String,
-        enum: ['pending', 'accepted', 'denied'],
-        default: 'pending'
-    },
-    registered_date: {
-        type: Date,
-        default: Date.now
-    }
+    tournament: String, //tournamentID
+    status : {type: String, default : 'pending', enum:['pending','approved','denied']}  ,
+    register_date : Date
 });
 
 module.exports = mongoose.model('register', register_schema)
