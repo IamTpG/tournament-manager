@@ -1,0 +1,100 @@
+header {
+  background: #222;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: x-large;
+  padding: 15px 30px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+nav a {
+  margin: 0 15px;
+  color: #ccc;
+  text-decoration: none;
+}
+
+nav a:hover {
+  color: #fff;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+}
+
+.search input {
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: none;
+}
+
+.user-icon {
+  margin-left: 15px;
+  font-size: 20px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: black;
+  color: #fff;
+}
+
+footer {
+  background-color: #2a2a3d;
+  margin-top: 50px;
+  padding: 20px 40px;
+  color: white;
+  display: flex;
+  justify-content: center;
+}
+
+.footer-container {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.footer-logo {
+  font-size: 40px;
+}
+
+.footer-info p {
+  margin: 0;
+  line-height: 1.5;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+/* 
+.join {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.join:hover {
+  background: #0056b3;
+}
+
+.joined {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: default;
+  font-size: 0.9rem;
+} */

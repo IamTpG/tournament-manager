@@ -6,8 +6,10 @@ const tournament_schema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    image: String,
     game: String,
     title: String,
+    format: String,
     description: String,
     participants: {
         type: Number,

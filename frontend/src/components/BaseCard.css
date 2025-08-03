@@ -1,0 +1,47 @@
+.card {
+  width: 310px;
+  height: 360px;
+  margin: 0.2rem;
+  border: 2px solid #b0b0b0;
+  border-radius: 20px;
+  /* background: #222; */
+  overflow: hidden;
+  transition: transform 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.card-img {
+  height: 60%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.card-content {
+  padding: 0 1rem;
+  /* padding-top: 0rem; */
+  color: white;
+  text-align: justify;
+  font-size: 14px;
+}
+
+.card-content h3 {
+  max-height: 20px;
+  overflow: hidden;
+}
+
+.card-content p {
+  max-height: 75px;
+  overflow: hidden;
+}
+
+/* 
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0rem;
+}
+*/

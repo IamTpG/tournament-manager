@@ -2,8 +2,8 @@ const mongoose = require('mongoose')
 
 const admin_schema = new mongoose.Schema({
     username: String,
-    password: String,
-    role: {type: String, enum: ['admin'], default: 'admin'}
+    password: String
+    // role: {type: String, enum: ['admin'], default: 'admin'}
 });
 
 // Hash password before saving to DB

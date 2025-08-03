@@ -1,19 +1,23 @@
 const express = require('express')
 const user_router = express.Router()
 
+
 const {
     createRegistration,
     getRegistersStatus
 } = require('../controllers/registrationControllers');
 
+
 const {
+    getTournaments,
     filterTournaments
 } = require('../controllers/tournamentControllers');
 
+
 const {
-    getAllArticles,
-    getArticlesByGame
+    getAllArticles
 } = require('../controllers/articleControllers');
+
 
 const {
     getAllHighlights
@@ -21,13 +25,11 @@ const {
 
 
 // Highlights management
-user_router.get('highlight/get-highlights',getAllHighlights);
+user_router.get('/highlight', getAllHighlights);
 
 
 // Articles management
-user_router.get('/article/get-all-articles',getAllArticles);
-
-user_router.get('/article/get-articles-by-game',getArticlesByGame);
+user_router.get('/article', getAllArticles);
 
 
 // Participants management
@@ -38,6 +40,6 @@ user_router.get('/registration/:tournament_id/participants/:status', getRegister
 
 // Tournaments management
 user_router.get('/tournament/filter', filterTournaments);
-
+user_router.get('/tournament', getTournaments);
 
 module.exports = user_router;

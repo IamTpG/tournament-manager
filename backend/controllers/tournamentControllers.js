@@ -10,6 +10,7 @@ const tournament_model = require('../model/tournament');
 const createTournament = async (req, res) => {
     const {
         id,
+        image,
         game,
         title,
         format,
@@ -30,6 +31,7 @@ const createTournament = async (req, res) => {
 
         const tournament_data = {
             id,
+            image,
             game,
             title,
             format,
@@ -61,6 +63,29 @@ const createTournament = async (req, res) => {
     }
 };
 
+const getTournaments = async (req, res) => {
+    try {
+            const tournaments = await tournament_model.find({}, {_id: 0, __v: 0, id:0});
+    
+            const formatted_tournaments = tournaments.map(a => ({
+                game: a.game,
+                image: a.image,
+                title: a.title,
+                format: a.format,
+                participants: a.participants,
+                start_date: a.start_date.toLocaleDateString('en-GB'),
+                end_date: a.end_date.toLocaleDateString('en-GB')
+            }));
+    
+            res.status(200).json(formatted_tournaments);
+        } catch (error) {
+            console.log('[ERROR][getTournaments]:', error);
+            res.status(500).json({
+                message: 'Failed to fetch tournaments!'
+            });
+        }
+};
+
 /**
  * Function to filter tournaments by game or a date inside tournament duration
  * @param {Object} req.query includes game and/or date (YYYY-MM-DD)
@@ -70,7 +95,7 @@ const createTournament = async (req, res) => {
  */
 const filterTournaments = async (req, res) => {
     const { game, date } = req.query;
-
+    console.log('[DEBUG][filterTournaments]: ', game)
     try {
         const filter = {};
 
@@ -104,5 +129,6 @@ const filterTournaments = async (req, res) => {
 
 module.exports = {
     createTournament,
+    getTournaments,
     filterTournaments
 };

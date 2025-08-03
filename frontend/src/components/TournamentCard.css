@@ -1,0 +1,44 @@
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: white;
+  margin-top: -10px;
+}
+
+.edit {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.edit {
+  background: #007bff;
+  color: white;
+}
+
+.edit:hover {
+  background: #0056b3;
+}
+
+.no-decoration {
+  text-decoration: none;
+  color: inherit;
+}
+
+button.join {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button.join:hover {
+  background-color: #45a049;
+}

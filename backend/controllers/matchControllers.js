@@ -12,19 +12,22 @@ const register_model = require('../model/register');
  *   - players_per_match: optional (will be auto-detected)
  */
 const createMatches = async (req, res) => {
-    const { id, tournament_ID } = req.body;
+    const {tournament_id} = req.params;
+    const {
+        id
+    } = req.body;
 
     try {
         // 1. Validate tournament existence
-        const tournament = await tournament_model.findOne({ id: tournament_ID }); 
+        const tournament = await tournament_model.findOne({ id: tournament_id }); 
         if (!tournament) {
             return res.status(404).json({ message: 'Tournament not found' });
         }
 
         // 2. Fetch approved players
         const players = await register_model.find({
-            tournament: tournament_ID,
-            status: 'pending'
+            tournament: tournament_id,
+            status: 'approved'
         });
 
         if (players.length < tournament.participants) {
@@ -40,8 +43,8 @@ const createMatches = async (req, res) => {
             case 'pubg': {
                 const playerIDs = players.map(p => p.id);
                 const match = new match_model({
-                    id,
-                    tournament_ID,
+                    id: id,
+                    tournament_ID: tournament_id,
                     format: tournament.format,
                     players: playerIDs,
                     results: playerIDs.map(pid => ({ player: pid }))
@@ -62,7 +65,7 @@ const createMatches = async (req, res) => {
                     const matchID = `${id}_g${matchIndex}`;
                     const match = new match_model({
                         id: matchID,
-                        tournament_ID,
+                        tournament_ID: tournament_id,
                         format: tournament.format,
                         players: ids,
                         results: ids.map(pid => ({ player: pid }))
@@ -88,7 +91,7 @@ const createMatches = async (req, res) => {
                     const matchID = `${id}_m${matchIndex}`;
                     const match = new match_model({
                         id: matchID,
-                        tournament_ID,
+                        tournament_ID: tournament_id,
                         format: tournament.format,
                         players: ids,
                         results: ids.map(pid => ({ player: pid }))
@@ -128,4 +131,4 @@ function splitIntoGroups(array, size) {
     return result;
 }
 
-module.exports = { createMatches };
+module.exports = {createMatches};

@@ -5,16 +5,13 @@ const {
 } = require('../middleware/verifyToken');
 
 const {
-    verifyRole
-} = require('../middleware/verifyRole');
-
-const {
     getRegistersByTournamentAndStatus,
     updateStatusOfRegister
 } = require('../controllers/registrationControllers');
 
 const {
     createTournament,
+    getTournaments,
     filterTournaments
 } = require('../controllers/tournamentControllers');
 
@@ -24,8 +21,7 @@ const {
 
 const {
     createArticle,
-    getAllArticles,
-    getArticlesByGame
+    getAllArticles
 } = require('../controllers/articleControllers');
 
 const {
@@ -35,32 +31,31 @@ const {
 
 
 // Highlights management
-admin_router.post('highlight/create-highlight',createHighlight);
+admin_router.post('/highlight', verifyToken, createHighlight);
 
-admin_router.get('highlight/get-highlights',getAllHighlights);
+admin_router.get('/highlight', getAllHighlights);
 
 
 // Articles management
-admin_router.post('/article/create-article',createArticle);
+admin_router.post('/article', verifyToken, createArticle);
 
-admin_router.get('/article/get-all-articles',getAllArticles);
-
-admin_router.get('/article/get-articles-by-game',getArticlesByGame);
+admin_router.get('/article', getAllArticles);
 
 
 // Participants management
 admin_router.get('/registration/:tournament_id/participants/:status', getRegistersByTournamentAndStatus);
 
-admin_router.put('/registration/:tournament_id/participants', verifyToken, verifyRole('admin'), updateStatusOfRegister);
+admin_router.put('/registration/:tournament_id/participants', verifyToken, updateStatusOfRegister);
 
 
 // Tournaments management
 admin_router.get('/tournament/filter', filterTournaments);
 
-admin_router.post('/tournament', verifyToken, verifyRole('admin'), createTournament);
+admin_router.get('/tournament', getTournaments);
+admin_router.post('/tournament', verifyToken, createTournament);
 
 
 // Matches management
-admin_router.post('/:tournament_id/matches', verifyToken, verifyRole('admin'), createMatches);
+admin_router.post('/:tournament_id/matches', verifyToken, createMatches);
 
 module.exports = admin_router;

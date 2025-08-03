@@ -1,0 +1,17 @@
+.side-card {
+  background-color: #333;
+  border-radius: 1rem;
+  padding: 0.8rem 1rem;
+  text-decoration: none;
+  color: white;
+  transition: background 0.3s;
+  height: 90px;
+  max-height: 80px;
+  line-height: 28px;
+  overflow: hidden;
+}
+
+.side-card:hover {
+  background-color: #444;
+  background: linear-gradient(to left, rgba(87, 75, 125, 0.388), transparent);
+}

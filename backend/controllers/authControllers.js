@@ -1,5 +1,4 @@
 const account = require('../model/admin_account');
-const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 /**
@@ -35,4 +34,4 @@ const login = async (req, res) => {
     }
 };
 
-modules.export = {login};
+module.exports = {login};

@@ -13,6 +13,11 @@ const tournament_model = require('../model/tournament')
 const createRegistration = async (req, res) => {
     try {
         const players = req.body;
+        const {
+            tournament_id
+        } = req.params;
+
+        console.log('[DEBUG][createRegistration]: tournament_id = ', tournament_id);
 
         if (!Array.isArray(players)) {
             return res.status(400).json({ message: 'Expected an array of players' });
@@ -21,23 +26,23 @@ const createRegistration = async (req, res) => {
         const results = [];
 
         for (const playerData of players) {
-            const { id, full_name, phone, email, name_in_tournament, tournament } = playerData;
+            const {id, full_name, phone, personal_id, email, name_in_tournament} = playerData;
 
             // Validate required fields
-            if (!id || !tournament) {
+            if (!id || !tournament_id) {
                 results.push({ id, status: 'failed', reason: 'Missing id or tournament' });
                 continue;
             }
 
             // Check if tournament exists
-            const existingTournament = await tournament_model.findOne({ id: tournament });
+            const existingTournament = await tournament_model.findOne({ id: tournament_id });
             if (!existingTournament) {
                 results.push({ id, status: 'failed', reason: 'Tournament not found' });
                 continue;
             }
 
             // Check if player already registered for this tournament
-            const existingPlayer = await register_model.findOne({ id, tournament });
+            const existingPlayer = await register_model.findOne({ id, tournament_id });
             if (existingPlayer) {
                 results.push({ id, status: 'failed', reason: 'Player already exists in tournament' });
                 continue;
@@ -47,10 +52,11 @@ const createRegistration = async (req, res) => {
             const newPlayer = new register_model({
                 id,
                 full_name,
+                personal_id,
                 phone,
                 email,
                 name_in_tournament,
-                tournament,
+                tournament: tournament_id,
                 register_date: new Date()  // optional: new Date() or undefined to let schema handle
             });
 
@@ -80,6 +86,8 @@ const createRegistration = async (req, res) => {
  */
 const getRegistersByTournamentAndStatus = async (req, res) => {
     const { tournament_id, status } = req.params;
+    console.log('[DEBUG]: tournament_id =', tournament_id);
+    console.log('[DEBUG]: status =', status);
 
     // Trạng thái hợp lệ
     const status_valid_values = ['all', 'pending', 'approved', 'denied'];
@@ -100,6 +108,8 @@ const getRegistersByTournamentAndStatus = async (req, res) => {
             __v: 0,
             tournament: 0
         });
+
+        console.log('[DEBUG]:', players);
 
         const formatted = players.map(p => ({
             full_name: p.full_name,
@@ -131,11 +141,11 @@ const getRegistersByTournamentAndStatus = async (req, res) => {
  * // PUT api/admin/registration/EChess/update-status
  */
 const updateStatusOfRegister = async (req, res) => {
-    const req_tournament_id = req.params.tournament_id;
-    const {req_personal_id, req_status} = req.body;
+    const {req_tournament_id} = req.params;
+    const {req_id, req_status} = req.body;
 
     // Check the value of status
-    const status_valid_values = ['pending', 'accepted', 'denied'];
+    const status_valid_values = ['pending', 'approved', 'denied'];
     if (status_valid_values.includes(req_status) === false) {
         return res.status(400).json({
             message: 'Invalid value of status'
@@ -144,13 +154,14 @@ const updateStatusOfRegister = async (req, res) => {
 
     try {
         const updated_register = await register_model.findOneAndUpdate (
-            {tournament_id: req_tournament_id, personal_id: req_personal_id},
-            {$set: {status: req_status}}
-        )
+            {tournament_id: req_tournament_id, id: req_id},
+            {$set: {status: req_status}},
+            {new: true}
+        );
 
         if (updated_register) {
             res.status(200).json({
-                message: `Register with ID ${req_personal_id} updated successfully`,
+                message: `Register with ID ${req_id} updated successfully`,
                 data: updated_register
             });
         } else {
@@ -187,23 +198,23 @@ const getRegistersStatus = async (req, res) => {
         if (status === 'all') {
             registrations = await register_model.find(
                 {
-                    tournament_id: tournament_id
+                    tournament: tournament_id
                 },
                 {
-                    full_name: true,
-                    name_in_tournament: true,
-                    _id: false
+                    full_name: 1,
+                    name_in_tournament: 1,
+                    _id: 0
                 });
         } else {
             registrations = await register_model.find(
                 {
-                    tournament_id: tournament_id,
+                    tournament: tournament_id,
                     status: status
                 },
                 {
-                    full_name: true,
-                    name_in_tournament: true,
-                    _id: false
+                    full_name: 1,
+                    name_in_tournament: 1,
+                    _id: 0
                 });
         }
 

@@ -11,7 +11,7 @@ const highlight_model = require('../model/highlight');
  */
 
 const createHighlight = async (req, res) => { 
-    const {  URL,image,title,description } = req.body; 
+    const {  URL, image, title, description } = req.body; 
 
     try {
         const new_highlight = new highlight_model({
@@ -43,7 +43,7 @@ const createHighlight = async (req, res) => {
 
 const getAllHighlights = async(req,res) =>  {
     try {
-        const highlights = await highligh_model.find({},{__v: false})
+        const highlights = await highlight_model.find({},{_id: 0, __v: 0})
 
         res.status(200).json(highlights)
     }

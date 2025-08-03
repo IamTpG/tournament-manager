@@ -1,0 +1,594 @@
+ .card {
+  background-color: black;
+}
+
+.card-img {
+  object-fit: contain;
+}
+
+.banner {
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  margin-top: 10px;
+  background-color: black;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 20%;
+}
+
+.info-section {
+  text-align: center;
+  padding: 10px;
+  background-color: #000000; /* Nền nhẹ cho khối thông tin */
+  border-radius: 8px;
+  margin-top: 5px;
+  box-shadow: 0 2px 2px rgba(0,0,0,0.05);
+}
+
+.info-section h1 {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: #ffffff; /* Đã đổi lại màu chữ để dễ nhìn trên nền sáng */
+  margin-bottom: 10px;
+}
+
+.info-section p {
+  font-size: 1.1em;
+  color: #e8e8e8; /* Đã đổi lại màu chữ để dễ nhìn trên nền sáng */
+  margin-bottom: 2px;
+}
+
+/* Style cho nút Join bên trong .info-section */
+.info-section .join-btn {
+  background-color: #000000;
+  color: rgb(255, 255, 255);
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-top: 15px;
+  transition: background-color 0.3s ease;
+}
+
+.info-section .join-btn:hover {
+  background-color: #0056b3;
+}
+
+.cardGridWrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 20px;
+  justify-items: center;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 2em;
+  color: #333;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  background-color: black;
+  padding: 15px 20px;
+  border-radius: 15px;
+  margin: 30px auto;
+  max-width: fit-content;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.tabs button {
+  background-color: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  white-space: nowrap;
+}
+
+.tabs button:hover {
+  background-color: #444;
+  color: white;
+  border-color: #666;
+}
+
+/* Style cho tab đang active */
+.tabs .activeTab {
+  background-color: #444;
+  border-color: #666;
+  color: white;
+}
+
+/* Các style mới cho phần trận đấu */
+.matchList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 0;
+  align-items: center;
+}
+
+.matchCard {
+  background-color: #222;
+  color: white;
+  border-radius: 12px;
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  width: 800px;
+  max-width: 90%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease-in-out;
+}
+
+.matchCard:hover {
+  transform: translateY(-3px);
+}
+
+.matchInfo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.matchInfo span:first-child,
+.matchInfo span:nth-child(2),
+.matchInfo span:nth-child(3) {
+  white-space: nowrap;
+}
+
+.matchTime {
+  font-size: 0.9em;
+  color: #bbb;
+  margin-top: 5px;
+  display: block;
+}
+
+.updateBtn {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  align-self: flex-end;
+}
+
+.updateBtn:hover {
+  background-color: #0056b3;
+}
+
+.footerArrow {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.arrow {
+  width: 30px;
+  height: 30px;
+  border: solid #333;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px;
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+
+
+.noScheduleMessage {
+  text-align: center;
+  margin-top: 50px;
+  padding: 20px;
+  background-color: #2a2a2a;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  color: #fff;
+}
+
+.noScheduleMessage h2 {
+  font-size: 1.8em;
+  color: #00bcd4;
+  margin-bottom: 10px;
+}
+
+.noScheduleMessage p {
+  font-size: 1.1em;
+  color: #bbb;
+}
+
+.bracketContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px;
+  background-color: #006064;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-top: 20px;
+  overflow-x: auto;
+  width: calc(100% - 40px);
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.bracketContainer h2 {
+  font-size: 2em;
+  color: #ffffff;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #00bcd4;
+  padding-bottom: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.bracketRounds {
+  display: flex;
+  gap: 40px;
+  padding: 0 10px;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  width: max-content;
+  justify-content: flex-start;
+}
+
+.bracketRound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  min-width: 180px;
+}
+
+.bracketRound h3 {
+  font-size: 1.5em;
+  color: #e0e0e0;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.matchup {
+  background-color: #004d40;
+  border: 1px solid #00bcd4;
+  border-radius: 8px;
+  padding: 10px 15px;
+  width: 100%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  position: relative;
+  color: #ffffff;
+}
+
+.matchup .player {
+  font-weight: bold;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 2px 0;
+}
+
+.byeWinner {
+  font-size: 0.8em;
+  color: #aaffaa;
+  font-style: italic;
+}
+
+.matchWinner {
+  font-size: 0.8em;
+  color: #ffd700;
+  font-style: italic;
+}
+
+.doubleEliminationLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+  align-items: center;
+}
+
+.bracketSection {
+  background-color: #004d40;
+  border-radius: 10px;
+  padding: 20px;
+  width: 95%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  text-align: center;
+}
+
+.bracketSection h3 {
+  font-size: 1.7em;
+  color: #00bcd4;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #00bcd4;
+  padding-bottom: 10px;
+}
+
+.rankingContainer {
+  padding: 20px;
+  background-color: #006064;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+.rankingContainer h2 {
+  font-size: 2em;
+  color: #ffffff;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #00bcd4;
+  padding-bottom: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.rankingTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  background-color: #004d40;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rankingTable th,
+.rankingTable td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #003d3d;
+  color: #ffffff;
+}
+
+.rankingTable th {
+  background-color: #003d3d;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 0.9em;
+  color: #00bcd4;
+}
+
+.rankingTable tbody tr:nth-child(even) {
+  background-color: #00565a;
+}
+
+.rankingTable tbody tr:hover {
+  background-color: #003333;
+}
+
+.tableCell {
+  white-space: nowrap;
+}
+
+.footerArrow {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.arrow {
+  width: 30px;
+  height: 30px;
+  border: solid #333;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px;
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+
+@media (max-width: 768px) {
+  .banner {
+    height: 200px;
+  }
+  .info-section h1 {
+    font-size: 2em;
+  }
+  .info-section p {
+    font-size: 1em;
+  }
+  .tabs {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px;
+  }
+  .tabs button {
+    padding: 8px 15px;
+  }
+
+  .bracketRounds {
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+  }
+  .bracketRound {
+    min-width: unset;
+    width: 95%;
+  }
+
+  .rankingTable {
+    font-size: 0.9em;
+  }
+  .rankingTable th,
+  .rankingTable td {
+    padding: 8px 10px;
+  }
+}
+
+.pageWrapper {
+  background-color: #121212;
+  min-height: 100vh;
+  padding-bottom: 50px;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.matchCardEdit {
+  background-color: #1a1a1a;
+  color: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 500px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.matchInfoEdit {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.playerAvatar {
+  background-color: #007bff;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8em;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+}
+
+.matchTimeEdit {
+  display: block;
+  font-size: 1em;
+  color: #bbb;
+  margin-top: 5px;
+}
+
+.editFormContainer {
+  background-color: #1a1a1a;
+  color: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin: 20px auto;
+  max-width: 500px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.editFormContainer h2 {
+  text-align: center;
+  color: white;
+  margin-bottom: 25px;
+  font-size: 2em;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formGroup label {
+  font-size: 1em;
+  color: #ccc;
+  margin-bottom: 5px;
+}
+
+.inputField,
+.selectField,
+.textareaField {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #333;
+  color: white;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.inputField::placeholder,
+.textareaField::placeholder {
+  color: #888;
+}
+
+.inputField:focus,
+.selectField:focus,
+.textareaField:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+}
+
+.selectField {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 18px;
+}
+
+.textareaField {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.saveButton {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  display: block;
+  width: 100%;
+  margin-top: 25px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.saveButton:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+}
