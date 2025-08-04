@@ -12,6 +12,7 @@ const {
 const {
     createTournament,
     getTournaments,
+    viewTournamentInformation,
     filterTournaments
 } = require('../controllers/tournamentControllers');
 
@@ -52,6 +53,7 @@ admin_router.put('/registration/:tournament_id/participants', verifyToken, updat
 admin_router.get('/tournament/filter', filterTournaments);
 
 admin_router.get('/tournament', getTournaments);
+admin_router.get('/tournament/:tournament_id', viewTournamentInformation);
 admin_router.post('/tournament', verifyToken, createTournament);
 
 

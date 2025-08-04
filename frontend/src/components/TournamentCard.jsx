@@ -2,13 +2,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import BaseCard from "./BaseCard";
 import "./TournamentCard.css";
 
-const TournamentCard = ({ _id, image, game, title, format, start_date, end_date, participants, isLoggedIn }) => {
+const TournamentCard = ({ id, image, game, title, format, description, participants, start_date, end_date, isLoggedIn }) => {
   const navigate = useNavigate();
 
   const handleEditClick = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    navigate(`/admin/tournament/${_id}/edit`);
+    navigate(`/admin/tournament/${id}/edit`);
   };
 
   const handleJoinClick = (e) => {
@@ -16,11 +16,11 @@ const TournamentCard = ({ _id, image, game, title, format, start_date, end_date,
     e.preventDefault();
 
     // Change to join route
-    navigate(`/tournament/${_id}`);
+    navigate(`/tournament/${id}`);
   };
 
   return (
-    <Link to={`/tournament/${_id}`} className="no-decoration">
+    <Link to={`/tournament/${id}`} className="no-decoration">
       <BaseCard image={image} title={title} description={format}>
         <div className="card-footer">
           <div>

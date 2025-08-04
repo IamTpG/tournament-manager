@@ -65,9 +65,10 @@ const createTournament = async (req, res) => {
 
 const getTournaments = async (req, res) => {
     try {
-            const tournaments = await tournament_model.find({}, {_id: 0, __v: 0, id:0});
+            const tournaments = await tournament_model.find({}, {_id: 0, __v: 0});
     
             const formatted_tournaments = tournaments.map(a => ({
+                id: a.id,
                 game: a.game,
                 image: a.image,
                 title: a.title,
@@ -85,6 +86,31 @@ const getTournaments = async (req, res) => {
             });
         }
 };
+
+const viewTournamentInformation = async (req, res) => {
+    const {tournament_id} = req.params
+    try {
+        const tournament = await tournament_model.findOne({id: tournament_id}, {_id: 0, __v: 0, id:0});
+    
+        const formatted_tournaments = {
+            id: tournament.id,
+            game: tournament.game,
+            image: tournament.image,
+            title: tournament.title,
+            format: tournament.format,
+            participants: tournament.participants,
+            start_date: tournament.start_date.toLocaleDateString('en-GB'),
+            end_date: tournament.end_date.toLocaleDateString('en-GB')
+        };
+
+        res.status(200).json(formatted_tournaments);
+    } catch (error) {
+        console.log('[ERROR][viewTournamentInformation]:', error);
+            res.status(500).json({
+                message: 'Failed to fetch tournament\'s information!'
+            });
+    }
+}
 
 /**
  * Function to filter tournaments by game or a date inside tournament duration
@@ -130,5 +156,6 @@ const filterTournaments = async (req, res) => {
 module.exports = {
     createTournament,
     getTournaments,
+    viewTournamentInformation,
     filterTournaments
 };

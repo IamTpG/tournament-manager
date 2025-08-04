@@ -57,10 +57,10 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/tournaments" element={<Tournaments />} />
-          <Route path="/tournament/:id" element={<TournamentDetail />} />
-          <Route path="/tournament/:id/matches" element={<TournamentDetail_Matches/>} />
-          <Route path="/tournament/:id/rank" element={<TournamentDetailBracket />} />
-          <Route path="/tournament/:id/matches/:matchId" element={<MatchDetail />} />
+          <Route path="/tournament/:tournament_id" element={<TournamentDetail />} />
+          <Route path="/tournament/:tournament_id/matches" element={<TournamentDetail_Matches/>} />
+          <Route path="/tournament/:tournament_id/rank" element={<TournamentDetailBracket />} />
+          <Route path="/tournament/:tournament_id/matches/:matchId" element={<MatchDetail />} />
 
           <Route
             path="/create-tournament"

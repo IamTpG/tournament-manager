@@ -3,24 +3,17 @@ import axios from 'axios';
 import styles from './CreateTournament.module.css';
 
 function CreateTournamentPage() {
-  // const [formData, setFormData] = useState({
-  //   req_title: '',
-  //   req_description: '',
-  //   req_game: '',
-  //   req_start_date: '',
-  //   req_end_date: '',
-  //   req_image: '',
-  // });
 
   const [formData, setFormData] = useState({
-    req_game: '',
-    req_title: '',
-    req_format: '',
-    req_description: '',
-    req_participants: '',
-    req_start_date: '',
-    req_end_date: '',
-    req_image: '',
+    id: '',
+    game: '',
+    title: '',
+    format: '',
+    description: '',
+    participants: '',
+    start_date: '',
+    end_date: '',
+    image: '',
   });
 
   const handleChange = e => {
@@ -30,7 +23,13 @@ function CreateTournamentPage() {
   const handleSubmit = async e => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/admin/tournament', formData);
+      const token = localStorage.getItem('jwtToken');
+
+      await axios.post('http://localhost:5000/api/admin/tournament', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       alert('Tournament created!');
     } catch (err) {
       console.error(err);
@@ -44,9 +43,18 @@ function CreateTournamentPage() {
         <h2 className={styles["create-title"]}>Tạo giải đấu mới</h2>
         <form onSubmit={handleSubmit} className={styles["create-form"]}>
           <div>
+            <label>Mã giải đấu:</label>
+            <input
+              name="id"
+              placeholder="Nhập mã giải đấu"
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
             <label>Tên giải đấu:</label>
             <input
-              name="req_title"
+              name="title"
               placeholder="Nhập tên giải đấu"
               onChange={handleChange}
             />
@@ -55,7 +63,7 @@ function CreateTournamentPage() {
           <div>
             <label>Mô tả:</label>
             <input
-              name="req_description"
+              name="description"
               placeholder="Nhập mô tả"
               onChange={handleChange}
             />
@@ -63,7 +71,7 @@ function CreateTournamentPage() {
 
           <div>
             <label>Game:</label>
-            <select name="req_game" onChange={handleChange}>
+            <select name="game" onChange={handleChange}>
               <option value="">Chọn game</option>
               <option value="PUBG">PUBG</option>
               <option value="Valorant">Valorant</option>
@@ -73,7 +81,7 @@ function CreateTournamentPage() {
 
           <div>
             <label>Loại hình:</label>
-            <select name="req_format" onChange={handleChange}>
+            <select name="format" onChange={handleChange}>
               <option value="">Chọn loại hình</option>
               <option value="Loại trực tiếp">Loại trực tiếp</option>
               <option value="Loại lần 2">Loại lần 2</option>
@@ -84,7 +92,7 @@ function CreateTournamentPage() {
           <div>
             <label>Số lượng người tham gia:</label>
             <input
-              name="req_participants"
+              name="participants"
               placeholder="Nhập số lượng người tham gia"
               onChange={handleChange}
             />
@@ -94,7 +102,7 @@ function CreateTournamentPage() {
             <div>
               <label>Thời gian bắt đầu:</label>
               <input
-                name="req_start_date"
+                name="start_date"
                 type="date"
                 onChange={handleChange}
               />
@@ -102,7 +110,7 @@ function CreateTournamentPage() {
             <div>
               <label>Thời gian kết thúc:</label>
               <input
-                name="req_end_date"
+                name="end_date"
                 type="date"
                 onChange={handleChange}
               />
@@ -112,7 +120,7 @@ function CreateTournamentPage() {
           <div>
             <label>Ảnh bìa giải đấu (URL):</label>
             <input
-              name="req_image"
+              name="image"
               placeholder="Dán URL ảnh"
               onChange={handleChange}
             />

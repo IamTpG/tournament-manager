@@ -8,6 +8,8 @@ import styles from './Home.module.css'
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
+// ---------------------------- Mock data ----------------------------
+
 // const news = [
 // {
 //   title: 'PUBG Tournament By Red Bull chính thức cán mốc 10.000 lượt đăng kí chỉ sau 3 ngày!',
@@ -101,6 +103,9 @@ import axios from 'axios';
 //   },
 // ];
 
+// -------------------------------------------------------------------
+
+
 export default function Home() {
   const [tournaments, setTournaments] = useState([]);
   const [highlights, setHighlights] = useState([]);
@@ -109,13 +114,30 @@ export default function Home() {
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/admin/tournament');
+        const token = localStorage.getItem("jwtToken");
+    
+        // Try the admin route first
+        const res = await axios.get('http://localhost:5000/api/admin/tournament', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+    
         setTournaments(res.data);
       } catch (err) {
-        console.error('Failed to fetch tournaments:', err);
+        if (err.response && err.response.status === 401) {
+          try {
+            // Fallback to public route if not authorized
+            const res = await axios.get('http://localhost:5000/api/tournament');
+
+            setTournaments(res.data);
+          } catch (fallbackErr) {
+            console.error('Fallback fetch (public) failed:', fallbackErr);
+          }
+        } else {
+          console.error('Failed to fetch tournaments:', err);
+        }
       }
     };
-
+    
     const fetchArticles = async () => {
       
       try {

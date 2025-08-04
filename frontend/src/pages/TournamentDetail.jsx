@@ -4,17 +4,43 @@ import axios from 'axios';
 import styles from "./TournamentDetail.module.css"
 
 function TournamentDetail() {
-  const { id } = useParams();
+  const { tournament_id } = useParams();
   const navigate = useNavigate();
   const [tournament, setTournament] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:5000/api/admin/tournament/${id}`)
-      .then(res => setTournament(res.data))
-      .catch(err => console.error(err));
-  }, [id]);
+    const fetchTournament = async () => {
+      const token = localStorage.getItem("jwtToken");
 
-  if (!tournament) return <div className="loading">Loading...</div>;
+      try {
+        // Try fetching from admin route first
+        const res = await axios.get(`http://localhost:5000/api/admin/tournament/${tournament_id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        })
+        
+        setTournament(res.data);
+      } catch (err) {
+        if (err.response && err.response.status === 401) {
+          // If unauthorized, fallback to public route
+          try {
+            const res = await axios.get(`http://localhost:5000/api/tournament/${tournament_id}`)
+            
+            setTournament(res.data);
+          } catch (fallbackErr) {
+            console.error('[Fallback Fetch Failed]', fallbackErr);
+          }
+        } else {
+          console.error('[Fetch Error]', err);
+        }
+      }
+    };
+
+    fetchTournament();
+  }, [tournament_id]);
+
+  if (!tournament) {
+    return <div className="loading">Loading...</div>;
+  }
 
   return (
     <div className="tournament-detail">
@@ -27,15 +53,15 @@ function TournamentDetail() {
       <div className={styles["info-section"]}>
         <h1>{tournament.title}</h1>
         <p>
-          {new Date(tournament.start_date).toLocaleDateString()} - {new Date(tournament.end_date).toLocaleDateString()}
+          {tournament.start_date} - {tournament.end_date}
         </p>
         <p>{tournament.participants || 0} Participants</p>
         <p>{tournament.description}</p>
       </div>
 
       <div className={styles["tabs"]}> 
-        <button onClick={() => navigate(`/tournament/${id}/rank`)}>📊 Bảng thi đấu</button>
-        <button onClick={() => navigate(`/tournament/${id}/matches`)}>🎮 Các trận đấu</button>
+        <button onClick={() => navigate(`/tournament/${tournament_id}/rank`)}>📊 Bảng thi đấu</button>
+        <button onClick={() => navigate(`/tournament/${tournament_id}/matches`)}>🎮 Các trận đấu</button>
       </div>
     </div>
   );
