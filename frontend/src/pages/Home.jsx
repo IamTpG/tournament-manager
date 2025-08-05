@@ -111,7 +111,7 @@ export default function Home() {
   const [highlights, setHighlights] = useState([]);
   const [articles, setArticles] = useState([]);
 
-  useEffect(() => {
+  useEffect(() => {    
     const fetchTournaments = async () => {
       try {
         const token = localStorage.getItem("jwtToken");
@@ -121,14 +121,39 @@ export default function Home() {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
     
-        setTournaments(res.data);
+        const tournamentsWithCount = await Promise.all(
+          res.data.map(async (tournament) => {
+            try {
+              const countRes = await axios.get(`http://localhost:5000/api/tournament/${tournament.id}/participants/count`);
+              return { ...tournament, participants: countRes.data.current };
+            } catch (err) {
+              console.error(`Failed to fetch count for tournament ${tournament.id}:`, err);
+              return { ...tournament, participants: 0 };
+            }
+          })
+        );
+    
+        setTournaments(tournamentsWithCount);
+    
       } catch (err) {
         if (err.response && err.response.status === 401) {
           try {
-            // Fallback to public route if not authorized
+            // Fallback to public route
             const res = await axios.get('http://localhost:5000/api/tournament');
-
-            setTournaments(res.data);
+    
+            const tournamentsWithCount = await Promise.all(
+              res.data.map(async (tournament) => {
+                try {
+                  const countRes = await axios.get(`http://localhost:5000/api/tournament/${tournament.id}/participants/count`);
+                  return { ...tournament, participants: countRes.data.current };
+                } catch (err) {
+                  console.error(`Failed to fetch count for tournament ${tournament.id}:`, err);
+                  return { ...tournament, participants: 0 };
+                }
+              })
+            );
+    
+            setTournaments(tournamentsWithCount);
           } catch (fallbackErr) {
             console.error('Fallback fetch (public) failed:', fallbackErr);
           }
@@ -138,6 +163,7 @@ export default function Home() {
       }
     };
     
+
     const fetchArticles = async () => {
       
       try {

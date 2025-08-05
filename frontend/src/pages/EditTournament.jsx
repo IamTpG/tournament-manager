@@ -7,14 +7,14 @@ function EditTournamentPage() {
   const { id } = useParams(); // Lấy ID của giải đấu từ URL
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    req_title: '',
-    req_description: '',
-    req_game: '',
-    req_format: '', // Thêm req_format
-    req_participants: '', // Thêm req_participants
-    req_start_date: '',
-    req_end_date: '',
-    req_image: '',
+    title: '',
+    description: '',
+    game: '',
+    format: '', // Thêm format
+    participants: '', // Thêm participants
+    start_date: '',
+    end_date: '',
+    image: '',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,20 +23,20 @@ function EditTournamentPage() {
     const fetchTournamentData = async () => {
       try {
         // Kích hoạt việc gọi API để lấy dữ liệu giải đấu hiện có
-        const res = await axios.get(`http://localhost:3000/api/admin/tournament/${id}`);
+        const res = await axios.get(`http://localhost:5000/api/admin/tournament/${id}`);
         const tournamentData = res.data;
 
         // Cập nhật formData với dữ liệu từ API
         setFormData({
-          req_title: tournamentData.title || '',
-          req_description: tournamentData.description || '',
-          req_game: tournamentData.game || '',
-          req_format: tournamentData.format || '',
-          req_participants: tournamentData.participants || '',
+          title: tournamentData.title || '',
+          description: tournamentData.description || '',
+          game: tournamentData.game || '',
+          format: tournamentData.format || '',
+          participants: tournamentData.participants || '',
           // Định dạng ngày tháng cho input type="date" (YYYY-MM-DD)
-          req_start_date: tournamentData.start_date ? new Date(tournamentData.start_date).toISOString().split('T')[0] : '',
-          req_end_date: tournamentData.end_date ? new Date(tournamentData.end_date).toISOString().split('T')[0] : '',
-          req_image: tournamentData.image || '',
+          start_date: tournamentData.start_date ? new Date(tournamentData.start_date).toISOString().split('T')[0] : '',
+          end_date: tournamentData.end_date ? new Date(tournamentData.end_date).toISOString().split('T')[0] : '',
+          image: tournamentData.image || '',
         });
         setLoading(false);
       } catch (err) {
@@ -56,8 +56,15 @@ function EditTournamentPage() {
   const handleSave = async e => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('jwtToken');
+
       // Gọi API để cập nhật giải đấu
-      await axios.put(`http://localhost:3000/api/admin/tournament/${id}`, formData);
+      await axios.put(`http://localhost:5000/api/admin/tournament/${id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
       alert('Thông tin giải đấu đã được cập nhật!');
       navigate(`/tournament/${id}`); // Chuyển hướng về trang chi tiết giải đấu sau khi lưu
     } catch (err) {
@@ -69,8 +76,14 @@ function EditTournamentPage() {
   const handleDelete = async () => {
     if (window.confirm('Bạn có chắc chắn muốn xóa giải đấu này không?')) {
       try {
+        const token = localStorage.getItem('jwtToken');
+        
         // Gọi API để xóa giải đấu
-        await axios.delete(`http://localhost:3000/api/admin/tournament/${id}`);
+        await axios.delete(`http://localhost:5000/api/admin/tournament/${id}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
         alert('Giải đấu đã được xóa thành công!');
         navigate('/admin/tournaments'); // Chuyển hướng về trang quản lý giải đấu sau khi xóa
       } catch (err) {
@@ -95,9 +108,9 @@ function EditTournamentPage() {
           <div>
             <label>Tên giải đấu:</label>
             <input
-              name="req_title"
+              name="title"
               placeholder="Nhập tên giải đấu"
-              value={formData.req_title}
+              value={formData.title}
               onChange={handleChange}
             />
           </div>
@@ -105,16 +118,16 @@ function EditTournamentPage() {
           <div>
             <label>Mô tả:</label>
             <input
-              name="req_description"
+              name="description"
               placeholder="Nhập mô tả"
-              value={formData.req_description}
+              value={formData.description}
               onChange={handleChange}
             />
           </div>
 
           <div>
             <label>Game:</label>
-            <select name="req_game" value={formData.req_game} onChange={handleChange}>
+            <select name="game" value={formData.game} onChange={handleChange}>
               <option value="">Chọn game</option>
               <option value="PUBG">PUBG</option>
               <option value="Valorant">Valorant</option>
@@ -124,7 +137,7 @@ function EditTournamentPage() {
 
           <div>
             <label>Loại hình:</label>
-            <select name="req_format" value={formData.req_format} onChange={handleChange}>
+            <select name="format" value={formData.format} onChange={handleChange}>
               <option value="">Chọn loại hình</option>
               <option value="Loại trực tiếp">Loại trực tiếp</option>
               <option value="Loại lần 2">Loại lần 2</option>
@@ -135,9 +148,9 @@ function EditTournamentPage() {
           <div>
             <label>Số lượng người tham gia:</label>
             <input
-              name="req_participants"
+              name="participants"
               placeholder="Nhập số lượng người tham gia"
-              value={formData.req_participants}
+              value={formData.participants}
               onChange={handleChange}
             />
           </div>
@@ -146,18 +159,18 @@ function EditTournamentPage() {
             <div>
               <label>Thời gian bắt đầu:</label>
               <input
-                name="req_start_date"
+                name="start_date"
                 type="date"
-                value={formData.req_start_date}
+                value={formData.start_date}
                 onChange={handleChange}
               />
             </div>
             <div>
               <label>Thời gian kết thúc:</label>
               <input
-                name="req_end_date"
+                name="end_date"
                 type="date"
-                value={formData.req_end_date}
+                value={formData.end_date}
                 onChange={handleChange}
               />
             </div>
@@ -166,9 +179,9 @@ function EditTournamentPage() {
           <div>
             <label>Ảnh bìa giải đấu (URL):</label>
             <input
-              name="req_image"
+              name="image"
               placeholder="Dán URL ảnh"
-              value={formData.req_image}
+              value={formData.image}
               onChange={handleChange}
             />
           </div>

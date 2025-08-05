@@ -13,7 +13,10 @@ const {
     createTournament,
     getTournaments,
     viewTournamentInformation,
-    filterTournaments
+    filterTournaments,
+    updateTournament,
+    deleteTournament,
+    countRegistersInTournament
 } = require('../controllers/tournamentControllers');
 
 const {
@@ -50,12 +53,13 @@ admin_router.put('/registration/:tournament_id/participants', verifyToken, updat
 
 
 // Tournaments management
-admin_router.get('/tournament/filter', filterTournaments);
-
 admin_router.get('/tournament', getTournaments);
-admin_router.get('/tournament/:tournament_id', viewTournamentInformation);
 admin_router.post('/tournament', verifyToken, createTournament);
-
+admin_router.get('/tournament/filter', filterTournaments);
+admin_router.get('/tournament/:tournament_id', viewTournamentInformation);
+admin_router.put('/tournament/:tournament_id', verifyToken, updateTournament);
+admin_router.delete('/tournament/:tournament_id', verifyToken, deleteTournament);
+admin_router.get('/tournament/:tournament_id/participants/count', countRegistersInTournament);
 
 // Matches management
 admin_router.post('/:tournament_id/matches', verifyToken, createMatches);

@@ -121,7 +121,7 @@ const viewTournamentInformation = async (req, res) => {
  */
 const filterTournaments = async (req, res) => {
     const { game, date } = req.query;
-    console.log('[DEBUG][filterTournaments]: ', game)
+    // console.log('[DEBUG][filterTournaments]: ', game)
     try {
         const filter = {};
 
@@ -139,7 +139,7 @@ const filterTournaments = async (req, res) => {
             __v: false
         });
 
-        console.log('Filtered tournaments fetched!');
+        // console.log('Filtered tournaments fetched!');
         res.status(200).json({
             message: 'Tournaments fetched!',
             data: results
@@ -153,9 +153,64 @@ const filterTournaments = async (req, res) => {
     }
 };
 
+const updateTournament = async (req, res) => {
+    const {tournament_id} = req.params;
+    const updated_data = req.body;
+    
+    // console.log('[DEBUG][updateTournament]:', updated_data);
+
+    try {
+        const updated_tournament = await tournament_model.findOneAndUpdate(
+            {id: tournament_id},       // Match by tournament id (not _id)
+            {$set: updated_data},       // Update with new values
+            {new: true}                // Return the updated document
+        );
+    
+        if (!updated_tournament) {
+            return res.status(404).json({message: 'Tournament not found'});
+        }
+  
+        res.status(200).json(updated_tournament);
+    } catch (err) {
+        console.error('[ERROR][updateTournament]:', err);
+        res.status(500).json({message: 'Failed to update tournament'});
+    }
+};
+  
+const deleteTournament = async (req, res) => {
+    const {tournament_id} = req.params;
+  
+    try {
+        const deleted = await tournament_model.findOneAndDelete({id: tournament_id});
+    
+        if (!deleted) {
+            return res.status(404).json({message: 'Tournament not found'});
+        }
+  
+        res.status(200).json({message: 'Tournament deleted successfully'});
+    } catch (error) {
+        console.error('[ERROR][deleteTournament]:', error);
+        res.status(500).json({message: 'Failed to delete tournament'});
+    }
+};
+
+const countRegistersInTournament = async (req, res) => {
+    const {tournament_id} = req.params;
+    try {
+        const count = await register_model.countDocuments({tournament_id:tournament_id});
+        res.json({current: count});
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({message: 'Failed to count participants'});
+    }
+}
+
 module.exports = {
     createTournament,
     getTournaments,
     viewTournamentInformation,
-    filterTournaments
+    filterTournaments,
+    updateTournament,
+    deleteTournament,
+    countRegistersInTournament
 };

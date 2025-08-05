@@ -11,12 +11,55 @@ export default function Tournaments() {
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/admin/tournament');
-        setTournaments(res.data);
+        const token = localStorage.getItem("jwtToken");
+    
+        // Try the admin route first
+        const res = await axios.get('http://localhost:5000/api/admin/tournament', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+    
+        const tournamentsWithCount = await Promise.all(
+          res.data.map(async (tournament) => {
+            try {
+              const countRes = await axios.get(`http://localhost:5000/api/tournament/${tournament.id}/participants/count`);
+              return { ...tournament, participants: countRes.data.current };
+            } catch (err) {
+              console.error(`Failed to fetch count for tournament ${tournament.id}:`, err);
+              return { ...tournament, participants: 0 };
+            }
+          })
+        );
+    
+        setTournaments(tournamentsWithCount);
+    
       } catch (err) {
-        console.error('Failed to fetch tournaments:', err);
+        if (err.response && err.response.status === 401) {
+          try {
+            // Fallback to public route
+            const res = await axios.get('http://localhost:5000/api/tournament');
+    
+            const tournamentsWithCount = await Promise.all(
+              res.data.map(async (tournament) => {
+                try {
+                  const countRes = await axios.get(`http://localhost:5000/api/tournament/${tournament.id}/participants/count`);
+                  return { ...tournament, participants: countRes.data.current };
+                } catch (err) {
+                  console.error(`Failed to fetch count for tournament ${tournament.id}:`, err);
+                  return { ...tournament, participants: 0 };
+                }
+              })
+            );
+    
+            setTournaments(tournamentsWithCount);
+          } catch (fallbackErr) {
+            console.error('Fallback fetch (public) failed:', fallbackErr);
+          }
+        } else {
+          console.error('Failed to fetch tournaments:', err);
+        }
       }
     };
+    
 
     fetchTournaments();
   }, []);

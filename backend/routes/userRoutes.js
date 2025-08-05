@@ -11,7 +11,8 @@ const {
 const {
     getTournaments,
     viewTournamentInformation,
-    filterTournaments
+    filterTournaments,
+    countRegistersInTournament
 } = require('../controllers/tournamentControllers');
 
 
@@ -43,5 +44,6 @@ user_router.get('/registration/:tournament_id/participants/:status', getRegister
 user_router.get('/tournament/filter', filterTournaments);
 user_router.get('/tournament', getTournaments);
 user_router.get('/tournament/:tournament_id', viewTournamentInformation);
+user_router.get('/tournament/:tournament_id/participants/count', countRegistersInTournament);
 
 module.exports = user_router;
