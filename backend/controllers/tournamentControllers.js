@@ -1,4 +1,5 @@
 const tournament_model = require('../model/tournament');
+const register_model = require('../model/register');
 
 /**
  * Function to create a tournament
