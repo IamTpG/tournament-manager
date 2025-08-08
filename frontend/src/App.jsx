@@ -14,6 +14,9 @@ import MatchEditPage            from "./pages/EditMatch";
 import EditTournamentPage       from "./pages/EditTournament";
 import MatchDetail              from "./pages/MatchDetail";
 
+import RegisterUser             from "./pages/RegisterUser";
+import MemberApproval           from "./pages/MemberApproval";
+
 import AdminRoute from "./components/AdminRoute";
 
 import "./styles.css";
@@ -33,7 +36,10 @@ export default function App() {
             <NavLink to="/highlights" className={({ isActive }) => (isActive ? "active" : "")}>Highlights</NavLink>
             <NavLink to="/tournaments" className={({ isActive }) => (isActive ? "active" : "")}>Giải đấu</NavLink>
             {token && (
-              <NavLink to="/create-tournament" className={({ isActive }) => (isActive ? "active" : "")}>Tạo giải đấu</NavLink>
+              <>
+                <NavLink to="/create-tournament" className={({ isActive }) => (isActive ? "active" : "")}>Tạo giải đấu</NavLink>
+                <NavLink to="/admin/members" className={({ isActive }) => (isActive ? "active" : "")}>Duyệt thành viên</NavLink>  
+              </>
             )}  
           </nav>
 
@@ -69,6 +75,16 @@ export default function App() {
           <Route path="/tournament/:tournament_id/matches" element={<TournamentDetail_Matches/>} />
           <Route path="/tournament/:tournament_id/rank" element={<TournamentDetailBracket />} />
           <Route path="/tournament/:tournament_id/matches/:matchId" element={<MatchDetail />} />
+          <Route path="/tournament/:tournamentId/register" element={<RegisterUser />} />
+          
+          <Route
+            path="/admin/members"
+            element={
+              <AdminRoute>
+                <MemberApproval />
+              </AdminRoute>
+            }
+          />
 
           <Route
             path="/create-tournament"

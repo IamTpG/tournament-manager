@@ -6,6 +6,8 @@ const cors = require('cors');
 const user_routes = require('./routes/userRoutes');
 const admin_routes = require('./routes/adminRoutes');
 const auth_routes = require('./routes/authRoutes')
+const registerRoutes = require('./routes/registerRoutes')
+const memberRoutes = require('./routes/memberRoutes')
 
 const connectDatabaseFunction = require('./config/database');
 
@@ -20,6 +22,8 @@ app.use(cors({
 app.use('/api', user_routes);
 app.use('/api/admin', admin_routes);
 app.use('/api/auth', auth_routes);
+app.use('/api/register', registerRoutes);
+app.use('/api/admin/members', memberRoutes);
 
 const PORT = 5000;
 

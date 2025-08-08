@@ -1,4 +1,4 @@
-const register_model = require('../model/register'); // Get model to access database
+const register_model = require('../model/register.js'); // Get model to access database
 const tournament_model = require('../model/tournament')
 /**
  * Function to create registration

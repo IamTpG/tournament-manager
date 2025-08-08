@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './Login.css';
+import styles from './Login.module.css'; // Import as object
 
 function LoginPage() {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -31,8 +31,8 @@ function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <form onSubmit={handleSubmit} className="login-form">
+    <div className={styles["login-container"]}>
+      <form onSubmit={handleSubmit} className={styles["login-form"]}>
         <h2>Đăng nhập</h2>
         <input
           type="string"
@@ -50,7 +50,7 @@ function LoginPage() {
           onChange={handleChange}
           required
         />
-        {error && <p className="error">{error}</p>}
+        {error && <p className={styles["error"]}>{error}</p>}
         <button type="submit">Đăng nhập</button>
       </form>
     </div>
@@ -58,3 +58,4 @@ function LoginPage() {
 }
 
 export default LoginPage;
+

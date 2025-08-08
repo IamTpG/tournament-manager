@@ -1,12 +1,11 @@
-const express = require('express')
-const user_router = express.Router()
+const express = require('express');
 
+const user_router = express.Router()
 
 const {
     createRegistration,
     getRegistersStatus
 } = require('../controllers/registrationControllers');
-
 
 const {
     getTournaments,
@@ -15,16 +14,13 @@ const {
     countRegistersInTournament
 } = require('../controllers/tournamentControllers');
 
-
 const {
     getAllNews
 } = require('../controllers/newsControllers');
 
-
 const {
     getAllHighlights
 } = require('../controllers/highlightControllers');
-
 
 // Highlights management
 user_router.get('/highlight', getAllHighlights);

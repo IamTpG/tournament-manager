@@ -14,9 +14,7 @@ const TournamentCard = ({ id, image, game, title, format, description, participa
   const handleJoinClick = (e) => {
     e.stopPropagation();
     e.preventDefault();
-
-    // Change to join route
-    navigate(`/tournament/${id}`);
+    navigate(`/tournament/${id}/register`);
   };
 
   return (

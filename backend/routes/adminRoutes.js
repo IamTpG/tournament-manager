@@ -1,5 +1,6 @@
 const express = require('express');
 const admin_router = express.Router();
+
 const {
     verifyToken
 } = require('../middleware/verifyToken');
