@@ -25,7 +25,7 @@ const PORT = 5000;
 
 const startServer = async () => {
     try {
-        await connectDatabaseFunction('mongodb+srv://phmkhoi:cUB32mEFueveUK8V@tournament.lpysyp1.mongodb.net/');
+        await connectDatabaseFunction(process.env.DATABASE_URL);
 
         const server = app.listen(PORT, () => {
             console.log(`Server is listening on port ${PORT}`);

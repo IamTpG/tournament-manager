@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const article_schema = new mongoose.Schema({
+const news_schema = new mongoose.Schema({
     image: String,
     title: String,
     content: String,
@@ -11,4 +11,4 @@ const article_schema = new mongoose.Schema({
     } 
 });
 
-module.exports = mongoose.model('article', article_schema);
+module.exports = mongoose.model('news', news_schema);

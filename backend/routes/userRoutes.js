@@ -17,8 +17,8 @@ const {
 
 
 const {
-    getAllArticles
-} = require('../controllers/articleControllers');
+    getAllNews
+} = require('../controllers/newsControllers');
 
 
 const {
@@ -30,8 +30,8 @@ const {
 user_router.get('/highlight', getAllHighlights);
 
 
-// Articles management
-user_router.get('/article', getAllArticles);
+// News management
+user_router.get('/news', getAllNews);
 
 
 // Participants management

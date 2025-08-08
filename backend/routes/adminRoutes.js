@@ -24,9 +24,9 @@ const {
 } = require('../controllers/matchControllers');
 
 const {
-    createArticle,
-    getAllArticles
-} = require('../controllers/articleControllers');
+    createNews,
+    getAllNews
+} = require('../controllers/newsControllers');
 
 const {
     createHighlight,
@@ -40,10 +40,10 @@ admin_router.post('/highlight', verifyToken, createHighlight);
 admin_router.get('/highlight', getAllHighlights);
 
 
-// Articles management
-admin_router.post('/article', verifyToken, createArticle);
+// News management
+admin_router.post('/news', verifyToken, createNews);
 
-admin_router.get('/article', getAllArticles);
+admin_router.get('/news', getAllNews);
 
 
 // Participants management

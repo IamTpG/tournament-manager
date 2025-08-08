@@ -34,8 +34,8 @@ function EditTournamentPage() {
           format: tournamentData.format || '',
           participants: tournamentData.participants || '',
           // Định dạng ngày tháng cho input type="date" (YYYY-MM-DD)
-          start_date: tournamentData.start_date ? new Date(tournamentData.start_date).toISOString().split('T')[0] : '',
-          end_date: tournamentData.end_date ? new Date(tournamentData.end_date).toISOString().split('T')[0] : '',
+          start_date: tournamentData.start_date ? new Date(tournamentData.start_date) : '',
+          end_date: tournamentData.end_date ? new Date(tournamentData.end_date) : '',
           image: tournamentData.image || '',
         });
         setLoading(false);
@@ -85,7 +85,7 @@ function EditTournamentPage() {
           }
         });
         alert('Giải đấu đã được xóa thành công!');
-        navigate('/admin/tournaments'); // Chuyển hướng về trang quản lý giải đấu sau khi xóa
+        navigate('/tournaments'); // Chuyển hướng về trang quản lý giải đấu sau khi xóa
       } catch (err) {
         console.error("Lỗi khi xóa giải đấu:", err);
         alert('Xóa giải đấu thất bại!');

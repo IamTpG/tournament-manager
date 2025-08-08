@@ -35,9 +35,19 @@ body {
   font-weight: 500;
 }
 
-.create-form input,
+.create-form input {
+  width: 580px;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background-color: #dcdcdc;
+  color: black;
+  font-size: 15px;
+  margin-bottom: 16px;
+}
+
 .create-form select {
-  width: 100%;
+  width: 600px;
   padding: 10px;
   border-radius: 8px;
   border: none;
@@ -49,13 +59,6 @@ body {
 
 .create-form input[type="date"] {
   cursor: pointer;
-}
-
-/* Grid for start/end dates */
-.date-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 70px;
 }
 
 /* Button group */

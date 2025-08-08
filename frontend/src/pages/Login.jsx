@@ -22,6 +22,7 @@ function LoginPage() {
 
       localStorage.setItem('jwtToken', token); // Save JWT
       navigate('/');
+      window.location.reload(true); 
       alert('Đăng nhập thành công!');
     } catch (err) {
       console.error(err);
