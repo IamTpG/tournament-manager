@@ -4,25 +4,7 @@
   align-items: center;
   font-size: 0.75rem;
   color: white;
-  margin-top: -10px;
-}
-
-.edit {
-  padding: 0.4rem 0.8rem;
-  font-size: 0.8rem;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.edit {
-  background: #007bff;
-  color: white;
-}
-
-.edit:hover {
-  background: #0056b3;
+  margin-top: -6px;
 }
 
 .no-decoration {
@@ -30,15 +12,38 @@
   color: inherit;
 }
 
-button.join {
-  background-color: #4CAF50;
-  color: white;
+/* Modern Button Base Style */
+.card-footer button {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
   border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
   cursor: pointer;
+  white-space: nowrap;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
-button.join:hover {
-  background-color: #45a049;
+/* Chỉnh sửa Button */
+.edit {
+  background: linear-gradient(135deg, #007bff, #004e92);
+  color: white;
+}
+
+.edit:hover {
+  background: linear-gradient(135deg, #0056b3, #003974);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Tham gia Button */
+.join {
+  background: linear-gradient(135deg, #4CAF50, #2e7d32);
+  color: white;
+}
+
+.join:hover {
+  background: linear-gradient(135deg, #45a049, #1b5e20);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  transform: translateY(-2px);
 }

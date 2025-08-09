@@ -125,7 +125,7 @@ const MemberApproval = () => {
   const getTournamentName = (tournamentId) => {
     if (!tournamentId) return 'Không xác định';
     
-    const tournament = tournaments.find(t => t._id === tournamentId);
+    const tournament = tournaments.find(t => t.id === tournamentId);
     if (tournament) {
       return tournament.title;
     }

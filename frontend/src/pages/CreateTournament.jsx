@@ -214,9 +214,9 @@ function CreateTournamentPage() {
             <button type="submit" className={styles["submit-btn"]}>
               Tạo giải đấu
             </button>
-            <button type="button" className={styles["cancel-btn"]}>
+            {/* <button type="button" className={styles["cancel-btn"]}>
               Hủy
-            </button>
+            </button> */}
           </div>
         </form>
       </div>
