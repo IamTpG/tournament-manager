@@ -17,11 +17,16 @@ const {
     filterTournaments,
     updateTournament,
     deleteTournament,
-    countRegistersInTournament
+    countRegistersInTournament,
 } = require('../controllers/tournamentControllers');
 
 const {
-    createMatches
+    createMatches,
+    getMatchesByTournament,
+    advanceTournamentBracket,
+    deleteAllMatchesForTournament,
+    getMatchById,
+    updateMatchResult
 } = require('../controllers/matchControllers');
 
 const {
@@ -63,6 +68,21 @@ admin_router.delete('/tournament/:tournament_id', verifyToken, deleteTournament)
 admin_router.get('/tournament/:tournament_id/participants/count', countRegistersInTournament);
 
 // Matches management
-admin_router.post('/:tournament_id/matches', verifyToken, createMatches);
+// admin_router.post('/:tournament_id/matches', verifyToken, createMatches);
+// admin_router.get('/:tournament_id/matches', getMatchesByTournament);
 
+// API để tạo các match ban đầu (vòng 1) cho một giải đấu
+admin_router.post('/tournament/:tournament_id/matches', verifyToken, createMatches);
+// API để lấy tất cả các match của một giải đấu
+admin_router.get('/tournament/:tournament_id/matches', getMatchesByTournament);
+// API để cập nhật kết quả của một match cụ thể
+admin_router.put('/match/:match_id/results', verifyToken, updateMatchResult);
+// API để tiến độ bảng đấu sang vòng tiếp theo cho một giải đấu
+admin_router.post('/tournament/:tournament_id/advance-bracket', verifyToken, advanceTournamentBracket);
+//API xóa tất cả trận đấu
+admin_router.delete('/tournament/:tournament_id/matches/all', verifyToken, deleteAllMatchesForTournament);
+
+admin_router.get('/match/:match_id', getMatchById);
+
+admin_router.put('/match/:match_id/result', verifyToken, updateMatchResult); 
 module.exports = admin_router;

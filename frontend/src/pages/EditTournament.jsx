@@ -130,7 +130,7 @@ function EditTournamentPage() {
             <select name="game" value={formData.game} onChange={handleChange}>
               <option value="">Chọn game</option>
               <option value="PUBG">PUBG</option>
-              <option value="Valorant">Valorant</option>
+              <option value="Street Fighter">Street Fighter</option>
               <option value="Chess">Chess</option>
             </select>
           </div>

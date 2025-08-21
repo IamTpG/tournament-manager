@@ -26,4 +26,19 @@ router.put('/:id/approve', verifyToken, async (req, res) => {
   }
 });
 
+
+// GET /api/admin/members/tournament/:tournament_id - Lấy danh sách thành viên của một giải đấu
+router.get('/tournament/:tournament_id', verifyToken, async (req, res) => {
+  try {
+      const { tournament_id } = req.params;
+      const approvedRegistrations = await Register.find({ 
+          tournament_id: tournament_id, 
+          status: 'approved' 
+      });
+      res.json(approvedRegistrations);
+  } catch (error) {
+      console.error('Error fetching approved members for tournament:', error);
+      res.status(500).json({ message: error.message });
+  }
+});
 module.exports = router;
