@@ -8,10 +8,60 @@ const MemberApproval = () => {
   const [loading, setLoading] = useState(true);
   const [tournamentFilter, setTournamentFilter] = useState('all'); // Thêm filter theo giải đấu
   const [filter, setFilter] = useState('all'); // Trạng thái filter
+  const [swipedCards, setSwipedCards] = useState({}); // Track swiped state for each card
+  
   useEffect(() => {
     fetchTournaments();
     fetchMembers();
   }, []);
+
+  // Handle card swipe
+  const handleCardSwipe = (memberId) => {
+    setSwipedCards(prev => ({
+      ...prev,
+      [memberId]: !prev[memberId]
+    }));
+  };
+
+  // Handle touch events for swipe
+  const handleTouchStart = (e, memberId) => {
+    const touch = e.touches[0];
+    setSwipedCards(prev => ({
+      ...prev,
+      [`${memberId}_startX`]: touch.clientX,
+      [`${memberId}_startY`]: touch.clientY
+    }));
+  };
+
+  const handleTouchEnd = (e, memberId) => {
+    const touch = e.changedTouches[0];
+    const startX = swipedCards[`${memberId}_startX`];
+    const startY = swipedCards[`${memberId}_startY`];
+    
+    if (!startX || !startY) return;
+    
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+    
+    // Check if it's a horizontal swipe (more horizontal than vertical)
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      if (deltaX < -50) {
+        // Swipe left - show actions panel
+        setSwipedCards(prev => ({ ...prev, [memberId]: true }));
+      } else if (deltaX > 50) {
+        // Swipe right - show info panel
+        setSwipedCards(prev => ({ ...prev, [memberId]: false }));
+      }
+    }
+    
+    // Clean up touch data
+    setSwipedCards(prev => {
+      const newState = { ...prev };
+      delete newState[`${memberId}_startX`];
+      delete newState[`${memberId}_startY`];
+      return newState;
+    });
+  };
 
   const fetchTournaments = async () => {
     try {
@@ -307,18 +357,18 @@ const MemberApproval = () => {
                           <button 
                             onClick={() => handleApproval(member._id, 'rejected')}
                             className="btn-reject"
-                            title="Hủy duyệt"
+                            title="Hủy"
                           >
-                            ✗ Hủy duyệt
+                            ✗ Hủy
                           </button>
                         )}
                         {member.status === 'rejected' && (
                           <button 
                             onClick={() => handleApproval(member._id, 'approved')}
                             className="btn-approve"
-                            title="Duyệt lại"
+                            title="Duyệt"
                           >
-                            ✓ Duyệt lại
+                            ✓ Duyệt
                           </button>
                         )}
                       </div>
@@ -328,6 +378,144 @@ const MemberApproval = () => {
               </tbody>
             </table>
             
+            {filteredMembers.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-icon">👥</div>
+                <h3>Không có thành viên nào</h3>
+                <p>Không có thành viên nào phù hợp với bộ lọc hiện tại.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Cards Container */}
+          <div className="mobile-cards-container">
+            {filteredMembers.map((member, index) => (
+              <div key={member._id} className="member-card">
+                <div className={`card-swipe-container ${swipedCards[member._id] ? 'swiped' : ''}`}>
+                  {/* Panel 1 - Thông tin chính */}
+                  <div className="card-info-panel">
+                    <div 
+                      className="card-touch-area" 
+                      onClick={() => handleCardSwipe(member._id)}
+                      onTouchStart={(e) => handleTouchStart(e, member._id)}
+                      onTouchEnd={(e) => handleTouchEnd(e, member._id)}
+                    ></div>
+                    <div className={`swipe-indicator ${swipedCards[member._id] ? 'hidden' : ''}`}>
+                      Trượt để duyệt →
+                    </div>
+                    
+                    <div className="card-header">
+                      <div className="card-avatar">
+                        {getAvatarText(member.full_name, member.email)}
+                      </div>
+                      <div className="card-title">
+                        <div className="card-name">
+                          {member.full_name || 'Chưa cập nhật'}
+                        </div>
+                        <div className="card-email">{member.email}</div>
+                      </div>
+                      <div className="card-status">
+                        <span className={`status-badge ${member.status}`}>
+                          {getStatusText(member.status)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="card-body">
+                      <div className="card-info-item">
+                        <div className="card-info-label">ID Cá nhân</div>
+                        <div className="card-info-value">{member.personal_id || 'N/A'}</div>
+                      </div>
+                      <div className="card-info-item">
+                        <div className="card-info-label">Số điện thoại</div>
+                        <div className="card-info-value">{member.phone || 'N/A'}</div>
+                      </div>
+                      <div className="card-info-item">
+                        <div className="card-info-label">Tên trong giải</div>
+                        <div className="card-info-value">
+                          {member.name_in_tournament || member.full_name || 'Chưa đặt tên'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Panel 2 - Actions và thông tin chi tiết */}
+                  <div className="card-actions-panel">
+                    <div className="back-button" onClick={() => handleCardSwipe(member._id)}>
+                      ← Quay lại
+                    </div>
+                    
+                    <div className="actions-panel-header">
+                      <div className="actions-panel-title">Duyệt thành viên</div>
+                      <div className="actions-panel-subtitle">#{index + 1}</div>
+                    </div>
+
+                    <div className="card-actions">
+                      {member.status === 'pending' && (
+                        <>
+                          <button 
+                            onClick={() => handleApproval(member._id, 'approved')}
+                            className="btn-approve"
+                            title="Duyệt thành viên"
+                          >
+                            ✓ Duyệt thành viên
+                          </button>
+                          <button 
+                            onClick={() => handleApproval(member._id, 'rejected')}
+                            className="btn-reject"
+                            title="Từ chối"
+                          >
+                            ✗ Từ chối
+                          </button>
+                        </>
+                      )}
+                      {member.status === 'approved' && (
+                        <button 
+                          onClick={() => handleApproval(member._id, 'rejected')}
+                          className="btn-reject"
+                          title="Hủy duyệt"
+                        >
+                          ✗ Hủy duyệt
+                        </button>
+                      )}
+                      {member.status === 'rejected' && (
+                        <button 
+                          onClick={() => handleApproval(member._id, 'approved')}
+                          className="btn-approve"
+                          title="Duyệt lại"
+                        >
+                          ✓ Duyệt lại
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="additional-info">
+                      <div className="additional-info-item">
+                        <div className="additional-info-label">Giải đấu</div>
+                        <div className="additional-info-value">
+                          {getTournamentName(member.tournament_id)}
+                        </div>
+                      </div>
+                      <div className="additional-info-item">
+                        <div className="additional-info-label">Ngày đăng ký</div>
+                        <div className="additional-info-value">
+                          {new Date(member.register_date).toLocaleDateString('vi-VN')}
+                        </div>
+                      </div>
+                      <div className="additional-info-item">
+                        <div className="additional-info-label">Trạng thái</div>
+                        <div className="additional-info-value">
+                          <span className={`status-badge ${member.status}`}>
+                            {getStatusText(member.status)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
             {filteredMembers.length === 0 && (
               <div className="empty-state">
                 <div className="empty-icon">👥</div>
