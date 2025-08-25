@@ -62,6 +62,7 @@
 }
 
 .no-schedule-message {
+    margin: 30px auto 0;
     text-align: center;
     padding: 40px;
     background-color: #ffffff;

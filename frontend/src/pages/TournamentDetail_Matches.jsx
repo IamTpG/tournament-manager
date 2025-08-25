@@ -416,6 +416,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './TournamentDetail.module.css'; // Đảm bảo các style là chính xác
 
+
+
 function TournamentDetailsMatch() {
     const { tournament_id } = useParams();
     const navigate = useNavigate();
@@ -506,6 +508,8 @@ function TournamentDetailsMatch() {
         fetchData();
     }, [fetchData]);
 
+    if (loading) return <div>Đang tải...</div>;
+    if (error) return <div>Lỗi</div>;
     // Đảm bảo matchId được truyền vào là hợp lệ
     const handleUpdateClick = (e, matchId) => {
         e.stopPropagation(); // Ngăn sự kiện click lan truyền lên Link (nếu có)
@@ -522,9 +526,24 @@ function TournamentDetailsMatch() {
         }
     };
     
-    // Đã di chuyển định nghĩa hasTournamentStarted lên đây
-    // Nó cần được định nghĩa trước khi renderMatchList sử dụng nó.
-    const hasTournamentStarted = tournament ? (new Date() >= new Date(tournament.start_date)) : false;
+    const convertToValidDateObject = (dateString) => {
+        // Nếu chuỗi rỗng, trả về null
+        if (!dateString) return null;
+        
+        const parts = dateString.split('/');
+        // Lấy ngày, tháng, năm từ chuỗi
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Tháng trong JS bắt đầu từ 0
+        const year = parseInt(parts[2], 10);
+        
+        return new Date(year, month, day);
+    };
+        
+    // Cập nhật lại logic kiểm tra ngày bắt đầu
+    const tournamentStartDate = convertToValidDateObject(tournament.start_date);
+    const hasTournamentStarted = tournamentStartDate && new Date() >= tournamentStartDate;
+   
+    // const hasTournamentStarted = tournament ? (new Date() >= new Date(tournament.start_date)) : false;
 
 
     // Hàm render danh sách trận đấu hoặc thông báo
@@ -649,7 +668,8 @@ function TournamentDetailsMatch() {
                 <div className={styles["info-section"]}>
                     <h1>{tournament.title}</h1>
                     <p>
-                        {new Date(tournament.start_date).toLocaleDateString()} - {new Date(tournament.end_date).toLocaleDateString()}
+                        {/* {new Date(tournament.start_date).toLocaleDateString()} - {new Date(tournament.end_date).toLocaleDateString()} */}
+                        {tournament.start_date} - {tournament.end_date}
                     </p>
                     <p>{tournament.participants || 0} Participants</p>
                 </div>

@@ -1650,7 +1650,24 @@ function TournamentDetailBracket() {
     if (error) return <div className="error">{error}</div>;
     if (!tournament) return <div className="loading">Không tìm thấy giải đấu.</div>;
 
-    const hasTournamentStarted = new Date() >= new Date(tournament.start_date);
+    // Hàm chuyển đổi chuỗi "DD/MM/YYYY" thành đối tượng Date hợp lệ
+    const convertToValidDateObject = (dateString) => {
+        // Nếu chuỗi rỗng, trả về null
+        if (!dateString) return null;
+        
+        const parts = dateString.split('/');
+        // Lấy ngày, tháng, năm từ chuỗi
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Tháng trong JS bắt đầu từ 0
+        const year = parseInt(parts[2], 10);
+        
+        return new Date(year, month, day);
+    };
+
+    // Cập nhật lại logic kiểm tra ngày bắt đầu
+    const tournamentStartDate = convertToValidDateObject(tournament.start_date);
+    const hasTournamentStarted = tournamentStartDate && new Date() >= tournamentStartDate;
+    // const hasTournamentStarted = new Date() >= new Date(tournament.start_date);
 
     // Hằng số cho chiều cao match
     const MATCH_HEIGHT = 70; 
@@ -1792,7 +1809,7 @@ function TournamentDetailBracket() {
                     {!isTournamentCompleted && hasTournamentStarted && canAdvance &&
                         (tournament.format === 'Loại trực tiếp' || tournament.format === 'Loại lần 2') && (
                         <button onClick={handleAdvanceBracket} className="advance-bracket-btn">
-                            Tiến độ Vòng Tiếp Theo
+                            Cập nhật vòng Tiếp Theo
                         </button>
                     )}
                     {isTournamentCompleted && (
@@ -2118,7 +2135,8 @@ function TournamentDetailBracket() {
             <div className={styles["info-section"]}>
                 <h1>{tournament.title}</h1>
                 <p>
-                    {new Date(tournament.start_date).toLocaleDateString()} - {new Date(tournament.end_date).toLocaleDateString()}
+                    {/* {new Date(tournament.start_date).toLocaleDateString()} - {new Date(tournament.end_date).toLocaleDateString()} */}
+                    {tournament.start_date}  -  {tournament.end_date}
                 </p>
                 <p>{tournament.participants || 0} Participants</p>
             </div>
