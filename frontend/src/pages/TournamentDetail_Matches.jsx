@@ -312,7 +312,7 @@ function TournamentDetailsMatch() {
                                     >
                                         Cập nhật
                                     </button> */}
-                                    {isLoggedIn && (
+                                    {isLoggedIn && match.players.length === 2 && (
                                         <button
                                             className={styles.updateBtn}
                                             onClick={(e) => {
