@@ -41,4 +41,22 @@ router.get('/tournament/:tournament_id', verifyToken, async (req, res) => {
       res.status(500).json({ message: error.message });
   }
 });
+
+
+// GET /api/admin/members/tournament/:tournament_id/public - Lấy danh sách thành viên công khai
+// Endpoint mới này sẽ không sử dụng middleware verifyToken
+router.get('/tournament/:tournament_id/public', async (req, res) => {
+  try {
+      const { tournament_id } = req.params;
+      const approvedRegistrations = await Register.find({ 
+          tournament_id: tournament_id, 
+          status: 'approved' 
+      });
+      res.json(approvedRegistrations);
+  } catch (error) {
+      console.error('Error fetching public members for tournament:', error);
+      res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

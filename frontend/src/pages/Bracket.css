@@ -5,7 +5,7 @@
     align-items: center;
     min-height: 100vh;
     padding: 20px 0;
-    background-color: #f0f2f5; /* Nền nhẹ nhàng hơn */
+    background-color: #010101; /* Nền nhẹ nhàng hơn */
 }
 
 /* Wrapper cho phần điều khiển (buttons) */
@@ -15,7 +15,7 @@
     gap: 15px;
     margin-bottom: 30px; /* Tăng khoảng cách với bracket */
     padding: 15px 25px;
-    background-color: #ffffff;
+    background: color #000;;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     width: 80%; /* Chiều rộng kiểm soát */

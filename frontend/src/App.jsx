@@ -63,15 +63,12 @@ export default function App() {
           </div>
         </header>
 
-
-
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/news" element={<News />} />
           <Route path="/highlights" element={<Highlights />} />
           <Route path="/tournaments" element={<Tournaments />} />
-          {/* <Route path="/tournament/:tournament_id" element={<TournamentDetail />} /> */}
           <Route path="/tournament/:tournament_id/matches" element={<TournamentDetail_Matches/>} />
           <Route path="/tournament/:tournament_id" element={<TournamentDetailBracket />} />
           <Route path="/tournament/:tournament_id/matches/:matchId" element={<MatchDetail />} />
@@ -106,7 +103,7 @@ export default function App() {
           path="/tournament/:tournament_id/matches/:match_id/edit" 
           element={
             <AdminRoute>
-              <MatchEditPage /> {/* Sửa lại tên component nếu bạn đặt tên là MatchEdit */}
+              <MatchEditPage /> 
             </AdminRoute>
           }
           />
