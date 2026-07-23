@@ -17,7 +17,7 @@ export default function Tournaments() {
         const res = await axios.get('http://localhost:5000/api/admin/tournament', {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-    
+        
         const tournamentsWithCount = await Promise.all(
           res.data.map(async (tournament) => {
             try {

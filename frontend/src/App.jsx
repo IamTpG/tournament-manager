@@ -7,7 +7,7 @@ import Highlights               from "./pages/Highlights";
 
 import Tournaments              from "./pages/Tournaments";
 import CreateTournament         from "./pages/CreateTournament";
-import TournamentDetail         from './pages/TournamentDetail';
+// import TournamentDetail         from './pages/TournamentDetail';
 import TournamentDetail_Matches from './pages/TournamentDetail_Matches';
 import TournamentDetailBracket  from "./pages/TournamentDetail_Bracket";
 import MatchEditPage            from "./pages/EditMatch";
@@ -63,17 +63,14 @@ export default function App() {
           </div>
         </header>
 
-
-
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/news" element={<News />} />
           <Route path="/highlights" element={<Highlights />} />
           <Route path="/tournaments" element={<Tournaments />} />
-          <Route path="/tournament/:tournament_id" element={<TournamentDetail />} />
           <Route path="/tournament/:tournament_id/matches" element={<TournamentDetail_Matches/>} />
-          <Route path="/tournament/:tournament_id/rank" element={<TournamentDetailBracket />} />
+          <Route path="/tournament/:tournament_id" element={<TournamentDetailBracket />} />
           <Route path="/tournament/:tournament_id/matches/:matchId" element={<MatchDetail />} />
           <Route path="/tournament/:tournamentId/register" element={<RegisterUser />} />
           
@@ -103,14 +100,14 @@ export default function App() {
             }
           />
           <Route
-            path="/tournament/:id/matches/:matchId/edit"
-            element={
-              <AdminRoute>
-                <MatchEditPage />
-              </AdminRoute>
-            }
+          path="/tournament/:tournament_id/matches/:match_id/edit" 
+          element={
+            <AdminRoute>
+              <MatchEditPage /> 
+            </AdminRoute>
+          }
           />
-
+    
           {/* <Route path="/create-tournament" element={<CreateTournament />} />
           <Route path="/admin/tournament/:id/edit" element={<EditTournamentPage />} />
           <Route path="/tournament/:id/matches/:matchId/edit" element={<MatchEditPage />} /> */}

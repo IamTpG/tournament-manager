@@ -1,285 +1,896 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import styles from './TournamentDetail.module.css';
+import styles from './TournamentDetail.module.css'; // Cho các style tổng thể trang
+import './Bracket.css'; // Cho các style của bracket và ranking table
 
 function TournamentDetailBracket() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const [tournament, setTournament] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+    const { tournament_id } = useParams();
+    const navigate = useNavigate();
+    const [tournament, setTournament] = useState(null);
+    const [matches, setMatches] = useState([]); // Lưu trữ danh sách các match từ backend
+    const [players, setPlayers] = useState([]); // Lưu trữ danh sách người chơi để mapping ID ra tên
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchTournament = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await axios.get(`http://localhost:5000/api/admin/tournament/${id}`);
-        setTournament(res.data);
-      } catch (err) {
-        console.error("Failed to fetch tournament details:", err);
-        setError("Không thể tải thông tin giải đấu. Vui lòng thử lại.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTournament();
-  }, [id]);
+    const isLoggedIn = !!localStorage.getItem("jwtToken");
+    // Hàm để fetch dữ liệu từ backend
+    // const fetchData = useCallback(async () => {
+    //     const token = localStorage.getItem("jwtToken");
 
-  if (loading) return <div className="loading">Đang tải...</div>;
-  if (error) return <div className="error">{error}</div>;
-  if (!tournament) return <div className="loading">Không tìm thấy giải đấu.</div>;
+    //     const config = {
+    //         headers: {'Authorization': `Bearer ${token}`}
+    //     };
 
-  const hasTournamentStarted = new Date() >= new Date(tournament.start_date);
+    //     try {
+    //         setLoading(true);
+    //         setError(null);
 
-  const playerNamesList = [
-    "Nguyễn Văn An", "Trần Thị Bình", "Lê Văn Cường", "Phạm Thị Duyên",
-    "Hoàng Minh Giang", "Đỗ Thị Hạnh", "Vũ Trung Kiên", "Đặng Thị Lan",
-    "Bùi Văn Mạnh", "Ngô Thị Nga", "Trịnh Quang Phát", "Đinh Thị Quỳnh",
-    "Lý Văn Sơn", "Châu Thị Thảo", "Tô Văn Tùng", "Dương Thị Uyên",
-    "Cao Văn Việt", "Lâm Thị Xuân", "Phan Văn Yến", "Trương Thị Zara"
-  ];
+    //         // Gọi API lấy thông tin giải đấu
+    //         const tournamentRes = await axios.get(
+    //             `http://localhost:5000/api/admin/tournament/${tournament_id}`,
+    //             config
+    //         );
+    //         setTournament(tournamentRes.data);
 
-  const generatePlayerDisplayName = (baseName, index, totalPlayers) => {
-    if (totalPlayers > playerNamesList.length) {
-      return `${baseName} (${index + 1})`;
-    }
-    return baseName;
-  };
+    //         // Gọi API lấy danh sách người chơi (để hiển thị tên đầy đủ)
+    //         // Giả định endpoint này trả về danh sách player objects với 'id' và 'name_in_tournament'
+    //         const playersRes = await axios.get(
+    //             `http://localhost:5000/api/admin/members/tournament/${tournament_id}`,
+    //             config
+    //         );
+    //         setPlayers(playersRes.data);
 
-  const generateMockRankings = (numParticipants) => {
-    const rankings = [];
-    for (let i = 0; i < numParticipants; i++) {
-      const baseName = playerNamesList[i % playerNamesList.length];
-      const playerName = generatePlayerDisplayName(baseName, i, numParticipants);
+    //         // Gọi API lấy danh sách match đã tạo cho giải đấu
+    //         const matchesRes = await axios.get(
+    //             `http://localhost:5000/api/admin/tournament/${tournament_id}/matches`,
+    //             config
+    //         );
+    //         setMatches(matchesRes.data);
 
-      rankings.push({
-        id: `player-${i}`,
-        playerName: playerName,
-        score: Math.floor(Math.random() * 100) + 50,
-        wins: Math.floor(Math.random() * (numParticipants / 2)),
-        losses: Math.floor(Math.random() * (numParticipants / 2)),
-      });
-    }
-    rankings.sort((a, b) => b.score - a.score);
-    return rankings.map((player, index) => ({ ...player, rank: index + 1 }));
-  };
+    //     } catch (err) {
+    //         console.error("Failed to fetch data:", err);
+    //         if (err.response && err.response.status === 401) {
+    //             setError("Bạn không có quyền truy cập. Vui lòng đăng nhập lại.");
+    //         } else if (err.response && err.response.status === 404 && err.response.data.message && err.response.data.message.includes('No matches found')) {
+    //             // Nếu chưa có match nào, không phải là lỗi, chỉ là chưa tạo
+    //             setMatches([]);
+    //             setError(null); // Xóa lỗi nếu chỉ là không tìm thấy match
+    //         } else {
+    //             setError("Không thể tải thông tin giải đấu hoặc danh sách trận đấu. Vui lòng thử lại.");
+    //         }
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, [tournament_id]);
 
-  const generateSingleEliminationBracket = (numParticipants) => {
-    const rounds = [];
-    let initialPlayers = [];
-  
-    for (let i = 0; i < numParticipants; i++) {
-      const baseName = playerNamesList[i % playerNamesList.length];
-      const displayName = generatePlayerDisplayName(baseName, i, numParticipants);
-      initialPlayers.push({ name: displayName }); // ⬅️ lưu dưới dạng object
-    }
-  
-    initialPlayers.sort(() => Math.random() - 0.5);
-  
-    let currentRoundPlayers = [...initialPlayers];
-    const nextPowerOf2 = Math.pow(2, Math.ceil(Math.log2(numParticipants)));
-  
-    for (let i = numParticipants; i < nextPowerOf2; i++) {
-      currentRoundPlayers.push({ name: "BYE" });
-    }
-  
-    currentRoundPlayers.sort(() => Math.random() - 0.5);
-  
-    let roundNum = 1;
-  
-    while (currentRoundPlayers.length >= 2) {
-      const matchesInRound = currentRoundPlayers.length / 2;
-      const roundMatches = [];
-      const nextRoundPlayers = [];
-  
-      for (let i = 0; i < matchesInRound; i++) {
-        const player1 = currentRoundPlayers[i * 2];
-        const player2 = currentRoundPlayers[i * 2 + 1];
-  
-        let winner;
-        if (player1.name === "BYE") {
-          winner = player2;
-        } else if (player2.name === "BYE") {
-          winner = player1;
-        } else {
-          const p1LastName = player1.name.split(' ').pop().replace(/\(\d+\)/, '').trim();
-          const p2LastName = player2.name.split(' ').pop().replace(/\(\d+\)/, '').trim();
-          winner = {
-            name: `Thắng ${p1LastName} vs ${p2LastName}`,
-            children: [player1, player2]
-          };
+    // const fetchData = useCallback(async () => {
+    //     const token = localStorage.getItem("jwtToken");
+    //     const isLoggedIn = !!token;
+    //     const config = {
+    //         headers: isLoggedIn ? { 'Authorization': `Bearer ${token}` } : {}
+    //     };
+    
+    //     try {
+    //         setLoading(true);
+    //         setError(null);
+    
+    //         // Fetch tournament info for both admin and public users
+    //         const tournamentUrl = isLoggedIn
+    //             ? `http://localhost:5000/api/admin/tournament/${tournament_id}`
+    //             : `http://localhost:5000/api/tournament/${tournament_id}`;
+    //         const tournamentRes = await axios.get(tournamentUrl, config);
+    //         setTournament(tournamentRes.data);
+    
+    //         // Fetch admin-specific data only if logged in
+    //         if (isLoggedIn) {
+    //             const playersRes = await axios.get(
+    //                 `http://localhost:5000/api/admin/members/tournament/${tournament_id}`,
+    //                 config
+    //             );
+    //             setPlayers(playersRes.data);
+    
+    //             try {
+    //                 // Try to get matches. This might fail with 404
+    //                 const matchesRes = await axios.get(
+    //                     `http://localhost:5000/api/admin/tournament/${tournament_id}/matches`,
+    //                     config
+    //                 );
+    //                 setMatches(matchesRes.data);
+    //             } catch (matchesErr) {
+    //                 // If the matches endpoint returns 404, it means no matches have been created. This is not an error state for the UI.
+    //                 if (matchesErr.response?.status === 404) {
+    //                     setMatches([]); // Set matches to empty array instead of showing an error
+    //                     // Do not set an error message, as the tournament info is still valid
+    //                 } else {
+    //                     // Re-throw other errors for the outer catch block to handle
+    //                     throw matchesErr;
+    //                 }
+    //             }
+    //         } else {
+    //             setPlayers([]);
+    //             setMatches([]);
+    //         }
+    
+    //     } catch (err) {
+    //         console.error("Failed to fetch data:", err);
+    //         // Handle a 404 for the tournament info itself
+    //         if (err.response?.status === 404) {
+    //             setError("Không tìm thấy giải đấu.");
+    //         } else if (err.response?.status === 401) {
+    //             setError("Bạn không có quyền truy cập. Vui lòng đăng nhập lại.");
+    //         } else {
+    //             setError("Không thể tải thông tin giải đấu. Vui lòng thử lại.");
+    //         }
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, [tournament_id]);
+    
+
+
+        // bản dưới đây hiện được bracket cho user
+    // const fetchData = useCallback(async () => {
+    //     const token = localStorage.getItem("jwtToken");
+    //     const isLoggedIn = !!token;
+    //     const config = {
+    //         headers: isLoggedIn ? { 'Authorization': `Bearer ${token}` } : {}
+    //     };
+    
+    //     try {
+    //         setLoading(true);
+    //         setError(null);
+    
+    //         // Fetch tournament info
+    //         const tournamentUrl = isLoggedIn
+    //             ? `http://localhost:5000/api/admin/tournament/${tournament_id}`
+    //             : `http://localhost:5000/api/tournament/${tournament_id}`;
+    //         const tournamentRes = await axios.get(tournamentUrl, config);
+    //         setTournament(tournamentRes.data);
+    
+    //         // --- Bắt đầu phần thay đổi: Lấy dữ liệu matches cho mọi người dùng ---
+    //         // Sử dụng endpoint admin nếu đã đăng nhập, ngược lại dùng endpoint public
+    //         const matchesUrl = isLoggedIn
+    //             ? `http://localhost:5000/api/admin/tournament/${tournament_id}/matches`
+    //             : `http://localhost:5000/api/tournament/${tournament_id}/matches`;
+    
+    //         // Gọi API để lấy dữ liệu match. Không cần try/catch riêng cho match vì logic
+    //         // backend đã được sửa để trả về mảng rỗng thay vì lỗi 404
+    //         const matchesRes = await axios.get(matchesUrl, config);
+    //         setMatches(matchesRes.data);
+    //         // --- Kết thúc phần thay đổi ---
+    
+    //         // Chỉ lấy dữ liệu player nếu đã đăng nhập (dành cho các tính năng quản trị)
+    //         if (isLoggedIn) {
+    //             const playersRes = await axios.get(
+    //                 `http://localhost:5000/api/admin/members/tournament/${tournament_id}`,
+    //                 config
+    //             );
+    //             setPlayers(playersRes.data);
+    //         } else {
+    //             // Đảm bảo danh sách người chơi rỗng với người dùng thường
+    //             setPlayers([]);
+    //         }
+    
+    //     } catch (err) {
+    //         console.error("Failed to fetch data:", err);
+    //         // Xử lý các lỗi chung (404, 401, v.v.)
+    //         if (err.response?.status === 404) {
+    //             setError("Không tìm thấy giải đấu.");
+    //         } else if (err.response?.status === 401) {
+    //             setError("Bạn không có quyền truy cập. Vui lòng đăng nhập lại.");
+    //         } else {
+    //             setError("Không thể tải thông tin giải đấu. Vui lòng thử lại.");
+    //         }
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, [tournament_id]);
+    // useEffect(() => {
+    //     fetchData();
+    // }, [fetchData]);
+    
+
+    // hiện được những tournament có bracket và không có match như chess luôn
+    // giờ cần sửa cái bracket sao cho hiện được tên của player trong bracket/bảng xếp hạng
+    // const fetchData = useCallback(async () => {
+    //     const token = localStorage.getItem("jwtToken");
+    //     const isLoggedIn = !!token;
+    //     const config = {
+    //         headers: isLoggedIn ? { 'Authorization': `Bearer ${token}` } : {}
+    //     };
+    
+    //     try {
+    //         setLoading(true);
+    //         setError(null);
+    
+    //         // 1. LẤY THÔNG TIN GIẢI ĐẤU (LUÔN CẦN)
+    //         const tournamentUrl = isLoggedIn
+    //             ? `http://localhost:5000/api/admin/tournament/${tournament_id}`
+    //             : `http://localhost:5000/api/tournament/${tournament_id}`;
+            
+    //         const tournamentRes = await axios.get(tournamentUrl, config);
+    //         setTournament(tournamentRes.data);
+    
+    //         // 2. LẤY DANH SÁCH NGƯỜI CHƠI (CHỈ ADMIN MỚI CẦN)
+    //         // Nếu không phải admin thì mảng players sẽ rỗng, điều này không ảnh hưởng đến hiển thị
+    //         if (isLoggedIn) {
+    //             const playersRes = await axios.get(
+    //                 `http://localhost:5000/api/admin/members/tournament/${tournament_id}`,
+    //                 config
+    //             );
+    //             setPlayers(playersRes.data);
+    //         } else {
+    //             setPlayers([]); 
+    //         }
+    
+    //         // 3. LẤY DANH SÁCH TRẬN ĐẤU (CẢ ADMIN & USER)
+    //         // Dùng một try/catch riêng biệt để xử lý lỗi 404 cho matches một cách độc lập.
+    //         try {
+    //             const matchesUrl = isLoggedIn
+    //                 ? `http://localhost:5000/api/admin/tournament/${tournament_id}/matches`
+    //                 : `http://localhost:5000/api/tournament/${tournament_id}/matches`;
+                
+    //             const matchesRes = await axios.get(matchesUrl, config);
+    //             setMatches(matchesRes.data);
+    //         } catch (matchesErr) {
+    //             // Nếu API matches trả về lỗi 404, điều đó có nghĩa là chưa có trận đấu nào được tạo.
+    //             // Đây KHÔNG phải là lỗi nghiêm trọng, chỉ là trạng thái chưa có dữ liệu.
+    //             if (matchesErr.response?.status === 404) {
+    //                 setMatches([]); // Gán mảng matches thành rỗng để UI biết không có bảng đấu
+    //             } else {
+    //                 // Nếu là lỗi khác, vẫn log ra để debug
+    //                 console.error("Failed to fetch matches:", matchesErr);
+    //                 setMatches([]);
+    //             }
+    //         }
+    //     } catch (err) {
+    //         // CATCH BLOCK CHUNG: Xử lý các lỗi nghiêm trọng như không tìm thấy giải đấu
+    //         console.error("Failed to fetch data:", err);
+    //         if (err.response?.status === 404) {
+    //             setError("Không tìm thấy giải đấu.");
+    //         } else if (err.response?.status === 401) {
+    //             setError("Bạn không có quyền truy cập. Vui lòng đăng nhập lại.");
+    //         } else {
+    //             setError("Không thể tải thông tin giải đấu. Vui lòng thử lại.");
+    //         }
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // }, [tournament_id]);
+    
+
+
+    const fetchData = useCallback(async () => {
+        const token = localStorage.getItem("jwtToken");
+        const isLoggedIn = !!token;
+        const config = {
+            headers: isLoggedIn ? { 'Authorization': `Bearer ${token}` } : {}
+        };
+    
+        try {
+            setLoading(true);
+            setError(null);
+    
+            // 1. LẤY THÔNG TIN GIẢI ĐẤU (LUÔN CẦN)
+            const tournamentUrl = isLoggedIn
+                ? `http://localhost:5000/api/admin/tournament/${tournament_id}`
+                : `http://localhost:5000/api/tournament/${tournament_id}`;
+            
+            const tournamentRes = await axios.get(tournamentUrl, config);
+            setTournament(tournamentRes.data);
+    
+            // 2. LẤY DANH SÁCH NGƯỜI CHƠI (CẢ ADMIN & USER)
+            const playersUrl = isLoggedIn
+                ? `http://localhost:5000/api/admin/members/tournament/${tournament_id}`
+                : `http://localhost:5000/api/admin/members/tournament/${tournament_id}/public`;
+            
+            const playersRes = await axios.get(playersUrl, config);
+            setPlayers(playersRes.data);
+    
+            // 3. LẤY DANH SÁCH TRẬN ĐẤU (CẢ ADMIN & USER)
+            try {
+                const matchesUrl = isLoggedIn
+                    ? `http://localhost:5000/api/admin/tournament/${tournament_id}/matches`
+                    : `http://localhost:5000/api/tournament/${tournament_id}/matches`;
+                
+                const matchesRes = await axios.get(matchesUrl, config);
+                setMatches(matchesRes.data);
+            } catch (matchesErr) {
+                if (matchesErr.response?.status === 404) {
+                    setMatches([]);
+                } else {
+                    console.error("Failed to fetch matches:", matchesErr);
+                    setMatches([]);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to fetch data:", err);
+            if (err.response?.status === 404) {
+                setError("Không tìm thấy giải đấu.");
+            } else if (err.response?.status === 401) {
+                setError("Bạn không có quyền truy cập. Vui lòng đăng nhập lại.");
+            } else {
+                setError("Không thể tải thông tin giải đấu. Vui lòng thử lại.");
+            }
+        } finally {
+            setLoading(false);
         }
-  
-        roundMatches.push({ player1, player2, winner });
-        nextRoundPlayers.push(winner);
-      }
-  
-      rounds.push({
-        name: currentRoundPlayers.length === 2 ? "Chung Kết" :
-              currentRoundPlayers.length === 4 ? "Bán Kết" :
-              currentRoundPlayers.length === 8 ? "Tứ Kết" :
-              `Vòng ${roundNum}`,
-        matches: roundMatches
-      });
-  
-      currentRoundPlayers = nextRoundPlayers;
-      roundNum++;
-    }
-  
-    return rounds;
-  };
+    }, [tournament_id]);
+    
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
-  
-  const renderBracketOrRankingContent = () => {
-    if (!hasTournamentStarted) {
-      return (
-        <div className={styles.noScheduleMessage}>
-          <h2>Giải đấu chưa bắt đầu</h2>
-          <p>Bảng đấu/xếp hạng sẽ được công bố sau khi giải đấu bắt đầu.</p>
-        </div>
-      );
-    }
+    // Hàm xử lý việc tạo bảng đấu (chỉ dành cho admin)
+    const handleGenerateBracket = async () => {
+        const confirmGenerate = window.confirm("Bạn có chắc chắn muốn tạo bảng đấu cho giải này không? Thao tác này sẽ tạo toàn bộ cấu trúc bracket và không thể hoàn tác nếu đã có match!");
+        if (!confirmGenerate) {
+            return;
+        }
 
-    switch (tournament.format) {
-      case "Loại trực tiếp":
-        const singleEliminationBracket = generateSingleEliminationBracket(tournament.participants);
+        const token = localStorage.getItem("jwtToken");
+        const config = {
+            headers: { 'Authorization': `Bearer ${token}` }
+        };
+        try {
+            await axios.post(
+                `http://localhost:5000/api/admin/tournament/${tournament_id}/matches`, // Endpoint POST tạo match
+                {}, // Body rỗng
+                config
+            );
+            window.alert('Cấu trúc bảng đấu đã được tạo và lưu thành công!');
+            fetchData(); // Tải lại dữ liệu để hiển thị các match mới
+        } catch (err) {
+            console.error("Failed to generate bracket:", err);
+            if (err.response && err.response.status === 409) {
+                window.alert(err.response.data.message || "Bảng đấu đã tồn tại cho giải đấu này. Vui lòng xóa để tạo lại.");
+            } else if (err.response && err.response.status === 400) {
+                 window.alert(err.response.data.message || "Không đủ người chơi hoặc không hỗ trợ loại hình/game này để tạo match.");
+            }
+            else {
+                window.alert('Có lỗi xảy ra khi tạo bảng đấu. Vui lòng thử lại.');
+            }
+        }
+    };
+
+    // Hàm xử lý việc tiến độ bảng đấu (cập nhật vòng tiếp theo)
+    const handleAdvanceBracket = async () => {
+        const confirmAdvance = window.confirm("Bạn có chắc chắn muốn tiến độ bảng đấu sang vòng tiếp theo không? Đảm bảo tất cả các trận đấu ở vòng hiện tại đã hoàn thành!");
+        if (!confirmAdvance) {
+            return;
+        }
+
+        const token = localStorage.getItem("jwtToken");
+        const config = {
+            headers: { 'Authorization': `Bearer ${token}` }
+        };
+
+        try {
+            await axios.post(
+                `http://localhost:5000/api/admin/tournament/${tournament_id}/advance-bracket`, // Endpoint POST mới
+                {}, // Body rỗng
+                config
+            );
+            window.alert('Bảng đấu đã được tiến độ thành công!');
+            fetchData(); // Tải lại dữ liệu để hiển thị vòng mới
+        } catch (err) {
+            console.error("Failed to advance bracket:", err);
+            window.alert(err.response?.data?.message || 'Có lỗi xảy ra khi tiến độ bảng đấu. Vui lòng kiểm tra lại các trận đấu đã hoàn thành.');
+        }
+    };
+
+    // Hàm để tìm tên người chơi từ ID
+    const getPlayerName = useCallback((playerId) => {
+        const player = players.find(p => p.id === playerId);
+        // Trả về tên hoặc "BYE" nếu đó là BYE_PLAYER, hoặc ID nếu không tìm thấy
+        if (playerId && playerId.startsWith('BYE_PLAYER_')) {
+            return 'BYE';
+        }
+        return player ? player.name_in_tournament : playerId; 
+    }, [players]);
+
+    if (loading) return <div className="loading">Đang tải...</div>;
+    if (error) return <div className="error">{error}</div>;
+    if (!tournament) return <div className="loading">Không tìm thấy giải đấu.</div>;
+
+    // Hàm chuyển đổi chuỗi "DD/MM/YYYY" thành đối tượng Date hợp lệ
+    const convertToValidDateObject = (dateString) => {
+        // Nếu chuỗi rỗng, trả về null
+        if (!dateString) return null;
+        
+        const parts = dateString.split('/');
+        // Lấy ngày, tháng, năm từ chuỗi
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1; // Tháng trong JS bắt đầu từ 0
+        const year = parseInt(parts[2], 10);
+        
+        return new Date(year, month, day);
+    };
+
+    // Cập nhật lại logic kiểm tra ngày bắt đầu
+    const tournamentStartDate = convertToValidDateObject(tournament.start_date);
+    const hasTournamentStarted = tournamentStartDate && new Date() >= tournamentStartDate;
+    // const hasTournamentStarted = new Date() >= new Date(tournament.start_date);
+
+    // Hằng số cho chiều cao match
+    const MATCH_HEIGHT = 70; 
+
+    // Hàm tính toán khoảng trống cần thiết giữa các match để nối bracket (theo code cũ của bạn)
+    const getGapHeight = (roundIndex) => {
+        return Math.pow(2, roundIndex) * (MATCH_HEIGHT + 10) - MATCH_HEIGHT;
+    };
+    
+    // Dựng lại logic hiển thị bracket từ `matches` đã fetch
+    const renderBracketData = (fetchedMatches) => {
+        if (!fetchedMatches || fetchedMatches.length === 0 ) {
+            return (
+                <div className="no-schedule-message">
+                    <h2>Chưa có bảng đấu</h2>
+                    <p>Bảng đấu sẽ được tạo và công bố sau khi giải đấu bắt đầu.</p>
+                    {hasTournamentStarted && isLoggedIn && (
+                        <button onClick={handleGenerateBracket} className="generate-bracket-btn">
+                            Tạo Bảng Đấu
+                        </button>
+                    )}
+                </div>
+            );
+        }
+
+        // Nhóm các match theo vòng đấu và nhánh đấu
+        const roundsMap = new Map();
+        fetchedMatches.forEach(match => {
+            const roundKey = match.round;
+            const bracketType = match.bracket_type || 'winners'; 
+            
+            const validBracketTypes = ['winners', 'losers', 'grand_finals'];
+            const finalBracketType = validBracketTypes.includes(bracketType) ? bracketType : 'winners';
+
+
+            if (!roundsMap.has(roundKey)) {
+                roundsMap.set(roundKey, { winners: [], losers: [], grand_finals: [] });
+            }
+            roundsMap.get(roundKey)[finalBracketType].push(match);
+        });
+
+        // Sắp xếp các vòng đấu theo số thứ tự vòng
+        const sortedRoundNumbers = Array.from(roundsMap.keys()).sort((a, b) => a - b);
+        const bracket = sortedRoundNumbers.map(roundNum => {
+            const roundData = roundsMap.get(roundNum);
+            // Sắp xếp các match trong cùng một nhánh để hiển thị ổn định
+            const sortedWinnersMatches = roundData.winners.sort((a, b) => new Date(a.occurence_day) - new Date(b.occurence_day) || a.id.localeCompare(b.id));
+            const sortedLosersMatches = roundData.losers.sort((a, b) => new Date(a.occurence_day) - new Date(b.occurence_day) || a.id.localeCompare(b.id));
+            const sortedGrandFinalsMatches = roundData.grand_finals.sort((a, b) => new Date(a.occurence_day) - new Date(b.occurence_day) || a.id.localeCompare(b.id));
+            return {
+                roundNumber: roundNum,
+                winners: sortedWinnersMatches,
+                losers: sortedLosersMatches,
+                grand_finals: sortedGrandFinalsMatches
+            };
+        });
+
+        // Hàm đặt tên vòng đấu
+        const getRoundName = (currentRoundNumber, bracketData) => {
+            const numMatchesInWinners = bracketData.winners.length;
+            // const numMatchesInLosers = bracketData.losers.length; // Not used for naming currently
+
+            if (bracketData.grand_finals.length > 0) {
+                return "Chung kết tổng";
+            }
+            if (tournament.format === 'Loại trực tiếp') {
+                if (numMatchesInWinners === 1) return "Chung kết";
+                if (numMatchesInWinners === 2) return "Bán kết";
+                if (numMatchesInWinners === 4) return "Tứ kết";
+                return `Vòng ${currentRoundNumber}`; 
+            } else if (tournament.format === 'Loại lần 2') {
+                // Logic naming cho DE có thể phức tạp hơn, tùy thuộc vào số vòng của nhánh thắng/thua
+                // Nếu bạn có yêu cầu cụ thể hơn cho tên vòng DE, vui lòng cung cấp thêm.
+            }
+            
+            return `Vòng ${currentRoundNumber}`;
+        };
+
+        // Xác định vòng đấu cao nhất đã hoàn thành để biết có thể advance hay không
+        // Logic này cần tìm các match thực sự (có players) đã completed.
+        const maxCompletedRoundNumber = fetchedMatches.reduce((max, match) => 
+            match.status === 'completed' && match.players.length > 0 ? Math.max(max, match.round) : max, 0
+        );
+        
+        // Vòng cao nhất tổng thể trong bracket (kể cả placeholder)
+        const highestRoundOverall = sortedRoundNumbers.length > 0 ? sortedRoundNumbers[sortedRoundNumbers.length - 1] : 0;
+        
+        // Có thể tiến độ nếu vòng cao nhất đã hoàn thành (không có match pending) VÀ không phải là vòng cuối cùng của bracket
+        let canAdvance = false;
+        if (highestRoundOverall > 0) {
+             const matchesInHighestOverallRound = bracket.find(r => r.roundNumber === highestRoundOverall);
+             const allMatchesInHighestOverallRoundAreCompleted = matchesInHighestOverallRound && 
+                                                                 [...matchesInHighestOverallRound.winners, 
+                                                                  ...matchesInHighestOverallRound.losers, 
+                                                                  ...matchesInHighestOverallRound.grand_finals]
+                                                                  .filter(m => m.players.length > 0) // Chỉ xét match có người chơi
+                                                                  .every(m => m.status === 'completed');
+
+            // Kiểm tra xem đã đến trận chung kết tổng chưa (nếu là Loại lần 2)
+            const isGrandFinalsRound = matchesInHighestOverallRound && matchesInHighestOverallRound.grand_finals.length > 0;
+            const isSingleEliminationFinal = tournament.format === 'Loại trực tiếp' && 
+                                             matchesInHighestOverallRound && 
+                                             matchesInHighestOverallRound.winners.length === 1 && 
+                                             matchesInHighestOverallRound.winners[0].players.length > 0;
+
+            if (allMatchesInHighestOverallRoundAreCompleted && !isGrandFinalsRound && !isSingleEliminationFinal) {
+                // Nếu vòng cao nhất đã hoàn thành và chưa phải chung kết, thì có thể advance
+                canAdvance = true;
+            } else if (tournament.format === 'Loại lần 2' && isGrandFinalsRound && matchesInHighestOverallRound.grand_finals.every(m => m.status === 'completed')) {
+                // Grand Finals đã hoàn thành, giải đấu kết thúc.
+                canAdvance = false;
+            }
+        }
+
+
+        // Kiểm tra nếu giải đấu đã kết thúc
+        let isTournamentCompleted = false;
+        let winnerOfTournament = null;
+
+        // Tìm match chung kết tổng hoặc chung kết nhánh thắng cuối cùng
+        const finalMatches = fetchedMatches.filter(m => 
+            m.bracket_type === 'grand_finals' || 
+            (tournament.format === 'Loại trực tiếp' && m.round === highestRoundOverall && m.bracket_type === 'winners' && m.players.length === 2)
+        ).sort((a,b) => b.round - a.round); // Lấy match có round cao nhất
+
+        if (finalMatches.length > 0) {
+            const finalMatch = finalMatches[0];
+            if (finalMatch.status === 'completed' && finalMatch.players.length === 2 && finalMatch.results.length === 2) {
+                isTournamentCompleted = true;
+                winnerOfTournament = finalMatch.results.reduce((prev, current) => (prev.score > current.score ? prev : current)).player;
+            }
+        }
+
+
         return (
-          <div className={styles.bracketContainer}>
-            <h2>Bảng Đấu Loại Trực Tiếp</h2>
-            <div className={styles.bracketRounds}>
-              {singleEliminationBracket.map((round, roundIndex) => (
-                <div key={roundIndex} className={styles.bracketRound}>
-                  <h3>{round.name}</h3>
-                  {round.matches.map((match, matchIndex) => (
-                    <div key={matchIndex} className={styles.matchup}>
-                      <div className={styles.player}>{match.player1.name}</div>
-                      <div className={styles.player}>{match.player2.name}</div>
-                      {(match.player1.name === "BYE" || match.player2.name === "BYE") ? (
-                        <div className={styles.byeWinner}>({match.winner.name} thắng BYE)</div>
-                      ) : (
-                        <div className={styles.matchWinner}>({match.winner.name})</div>
-                      )}
+            <div className="bracket-page"> {/* Wrapper chính cho bracket */}
+                <div className="bracket-controls">
+                    {/* Nút tiến độ vòng tiếp theo */}
+                    {!isTournamentCompleted && hasTournamentStarted  && canAdvance && isLoggedIn && 
+                        (tournament.format === 'Loại trực tiếp' || tournament.format === 'Loại lần 2') && (
+                        <button onClick={handleAdvanceBracket} className="advance-bracket-btn">
+                            Cập nhật vòng Tiếp Theo
+                        </button>
+                    )}
+                    {isTournamentCompleted && (
+                         <div className="tournament-complete-message">
+                            Giải đấu đã kết thúc! Nhà vô địch: **{getPlayerName(winnerOfTournament)}**
+                        </div>
+                    )}
+                </div>
+
+                <div className="bracket-container">
+                    {bracket.map((roundData, roundIndex) => (
+                        <div className="round" key={roundIndex}>
+                            <div className="round-title">
+                                {getRoundName(roundData.roundNumber, roundData)} {/* Sử dụng hàm getRoundName */}
+                            </div>
+                            
+                            {/* Hiển thị Nhánh Thắng (Winners' Bracket) */}
+                            {roundData.winners.length > 0 && (
+                                <div className="bracket-segment winners-bracket">
+                                    {tournament.format === 'Loại lần 2' && <h4 className="bracket-segment-title">Nhánh thắng</h4>}
+                                    {roundData.winners.map((match, matchIndex) => {
+                                        // Kiểm tra xem có cần đường nối hay không (match cuối của cặp và không phải vòng cuối)
+                                        const isFirstMatchInPair = matchIndex % 2 === 0;
+                                        const hasNextMatchInPair = matchIndex + 1 < roundData.winners.length;
+                                        const showConnectors = isFirstMatchInPair && hasNextMatchInPair && roundIndex < bracket.length - 1;
+
+                                        // Xác định người thắng để in đậm
+                                        let winnerId = null;
+                                        if (match.status === 'completed' && match.players.length > 0 && match.results && match.results.length > 0) {
+                                            // Lấy người có điểm cao nhất
+                                            const highestScoreResult = match.results.reduce((prev, current) => (prev.score > current.score ? prev : current));
+                                            winnerId = highestScoreResult.player;
+                                        }
+
+                                        return (
+                                            <div
+                                                className={`match ${match.status === 'completed' ? 'match-completed' : 'match-pending'}`}
+                                                key={match.id}
+                                                style={{
+                                                    marginBottom: matchIndex !== roundData.winners.length - 1 ? `${getGapHeight(roundIndex)}px` : 0,
+                                                }}
+                                            >
+                                                <div className="player-pair">
+                                                    {match.players.length > 0 ? ( // Chỉ render player nếu có player
+                                                        match.players.map((playerID, pIdx) => (
+                                                            <div 
+                                                                key={pIdx} 
+                                                                className={`player ${match.status === 'completed' && playerID === winnerId ? 'winner' : ''}`}
+                                                            >
+                                                                {getPlayerName(playerID)}
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        // Render 2 div trống nếu không có player (cho match placeholder)
+                                                        <>
+                                                            <div className="player empty-player"></div>
+                                                            <div className="player empty-player"></div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {match.status === 'completed' && match.players.length > 0 && match.results.length > 0 && (
+                                                    <div className="match-scores">
+                                                        {match.results.map((res, resIdx) => {
+                                                            const isWinner = winnerId === res.player;
+                                                            return (
+                                                                <span key={resIdx}>
+                                                                    {getPlayerName(res.player)}: {res.score}
+                                                                    {isWinner && " (W)"}
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                                {/* Logic vẽ đường nối */}
+                                                {roundIndex < bracket.length - 1 && (
+                                                    <>
+                                                        <div className="horizontal-line"></div> 
+                                                        {showConnectors && (
+                                                            <>
+                                                                <div 
+                                                                    className="vertical-line"
+                                                                    style={{ 
+                                                                        height: `${MATCH_HEIGHT + getGapHeight(roundIndex)}px`,
+                                                                        top: `${MATCH_HEIGHT / 2}px` 
+                                                                    }}
+                                                                ></div>
+                                                                <div 
+                                                                    className="horizontal-line-next"
+                                                                    style={{ 
+                                                                        top: `${getGapHeight(roundIndex) / 2 + MATCH_HEIGHT}px`
+                                                                    }}
+                                                                ></div>
+                                                            </>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Hiển thị Nhánh Thua (Losers' Bracket) - chỉ cho Loại lần 2 */}
+                            {tournament.format === 'Loại lần 2' && roundData.losers.length > 0 && (
+                                <div className="bracket-segment losers-bracket">
+                                    <h4 className="bracket-segment-title">Nhánh thua</h4>
+                                    {roundData.losers.map((match, matchIndex) => {
+                                        const isFirstMatchInPair = matchIndex % 2 === 0;
+                                        const hasNextMatchInPair = matchIndex + 1 < roundData.losers.length;
+                                        const showConnectors = isFirstMatchInPair && hasNextMatchInPair && roundIndex < bracket.length - 1;
+
+                                        // Xác định người thắng để in đậm
+                                        let winnerId = null;
+                                        if (match.status === 'completed' && match.players.length > 0 && match.results && match.results.length > 0) {
+                                            const highestScoreResult = match.results.reduce((prev, current) => (prev.score > current.score ? prev : current));
+                                            winnerId = highestScoreResult.player;
+                                        }
+
+                                        return (
+                                            <div
+                                                className={`match ${match.status === 'completed' ? 'match-completed' : 'match-pending'}`}
+                                                key={match.id}
+                                                style={{
+                                                    marginBottom: matchIndex !== roundData.losers.length - 1 ? `${getGapHeight(roundIndex)}px` : 0,
+                                                }}
+                                            >
+                                                <div className="player-pair">
+                                                    {match.players.length > 0 ? ( // Chỉ render player nếu có player
+                                                        match.players.map((playerID, pIdx) => (
+                                                            <div 
+                                                                key={pIdx} 
+                                                                className={`player ${match.status === 'completed' && playerID === winnerId ? 'winner' : ''}`}
+                                                            >
+                                                                {getPlayerName(playerID)}
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        // Render 2 div trống nếu không có player (cho match placeholder)
+                                                        <>
+                                                            <div className="player empty-player"></div>
+                                                            <div className="player empty-player"></div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {match.status === 'completed' && match.players.length > 0 && match.results.length > 0 && (
+                                                    <div className="match-scores">
+                                                        {match.results.map((res, resIdx) => {
+                                                            const isWinner = winnerId === res.player;
+                                                            return (
+                                                                <span key={resIdx}>
+                                                                    {getPlayerName(res.player)}: {res.score}
+                                                                    {isWinner && " (W)"}
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                                {/* Logic vẽ đường nối cho nhánh thua (tương tự nhánh thắng) */}
+                                                {roundIndex < bracket.length - 1 && (
+                                                    <>
+                                                        <div className="horizontal-line"></div>
+                                                        {showConnectors && (
+                                                            <>
+                                                                <div 
+                                                                    className="vertical-line"
+                                                                    style={{ 
+                                                                        height: `${MATCH_HEIGHT + getGapHeight(roundIndex)}px`,
+                                                                        top: `${MATCH_HEIGHT / 2}px`
+                                                                    }}
+                                                                ></div>
+                                                                <div 
+                                                                    className="horizontal-line-next"
+                                                                    style={{ 
+                                                                        top: `${getGapHeight(roundIndex) / 2 + MATCH_HEIGHT}px`
+                                                                    }}
+                                                                ></div>
+                                                            </>
+                                                        )}
+                                                    </>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Hiển thị Chung kết tổng (Grand Finals) */}
+                            {roundData.grand_finals.length > 0 && (
+                                <div className="bracket-segment grand-finals-bracket">
+                                    <h4 className="bracket-segment-title">Chung kết tổng</h4>
+                                    {roundData.grand_finals.map((match) => {
+                                        let winnerId = null;
+                                        if (match.status === 'completed' && match.players.length > 0 && match.results.length > 0) {
+                                            const highestScoreResult = match.results.reduce((prev, current) => (prev.score > current.score ? prev : current));
+                                            winnerId = highestScoreResult.player;
+                                        }
+
+                                        return (
+                                            <div
+                                                className={`match ${match.status === 'completed' ? 'match-completed' : 'match-pending'}`}
+                                                key={match.id}
+                                            >
+                                                <div className="player-pair">
+                                                    {match.players.length > 0 ? ( // Chỉ render player nếu có player
+                                                        match.players.map((playerID, pIdx) => (
+                                                            <div 
+                                                                key={pIdx} 
+                                                                className={`player ${match.status === 'completed' && playerID === winnerId ? 'winner' : ''}`}
+                                                            >
+                                                                {getPlayerName(playerID)}
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <>
+                                                            <div className="player empty-player"></div>
+                                                            <div className="player empty-player"></div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                {match.status === 'completed' && match.players.length > 0 && match.results.length > 0 && (
+                                                    <div className="match-scores">
+                                                        {match.results.map((res, resIdx) => {
+                                                            const isWinner = winnerId === res.player;
+                                                            return (
+                                                                <span key={resIdx}>
+                                                                    {getPlayerName(res.player)}: {res.score}
+                                                                    {isWinner && " (W)"}
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
+    const renderRankingContent = () => {
+        const playerScoresMap = new Map();
+        // Giả sử logic lấy điểm cho ranking từ matches đã có
+        const rankingMatch = matches.find(m => m.format === 'Xếp hạng');
+        if (rankingMatch && rankingMatch.results) {
+            rankingMatch.results.forEach(res => {
+                playerScoresMap.set(res.player, res.score);
+            });
+        }
+
+        const playerNamesWithScores = players.map(p => ({
+            id: p.id,
+            playerName: p.name_in_tournament,
+            score: playerScoresMap.get(p.id) || 0, // Lấy điểm thực tế hoặc 0
+        })).sort((a, b) => b.score - a.score).map((player, index) => ({ ...player, rank: index + 1 }));
+
+        return (
+            <div className="ranking-container">
+                <h2>Bảng Xếp Hạng</h2>
+                <table className="ranking-table">
+                    <thead>
+                        <tr className="table-header">
+                            <th className="table-cell">Hạng</th>
+                            <th className="table-cell">Kỳ Thủ</th>
+                            <th className="table-cell">Điểm</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {playerNamesWithScores.map((player) => (
+                            <tr key={player.id} className="table-row">
+                                <td className="table-cell">{player.rank}</td>
+                                <td className="table-cell">{player.playerName}</td>
+                                <td className="table-cell">{player.score}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
+
+    const renderContentBasedOnFormat = () => {
+        if (!hasTournamentStarted) {
+            return (
+                <div className="no-schedule-message">
+                    <h2>Giải đấu chưa bắt đầu</h2>
+                    <p>Bảng đấu/xếp hạng sẽ được công bố sau khi giải đấu bắt đầu.</p>
+                </div>
+            );
+        }
+
+        switch (tournament.format) {
+            case "Loại trực tiếp":
+            case "Loại lần 2":
+                return renderBracketData(matches); 
+            case "Xếp hạng":
+                return renderRankingContent(); 
+            case "TFT": 
+                return renderBracketData(matches);
+            default:
+                return (
+                    <div className="no-schedule-message">
+                        <h2>Loại hình giải đấu không xác định hoặc chưa có bảng đấu/xếp hạng.</h2>
+                        <p>Vui lòng kiểm tra lại loại hình giải đấu hoặc chờ cập nhật.</p>
                     </div>
-                  ))}
-                </div>
-              ))}
+                );
+        }
+    };
+
+    return (
+        <div className={styles.pageWrapper}>
+            <div className={styles["banner"]}>
+                <img
+                    src={tournament.image?.startsWith('http') ? tournament.image : `/${tournament.image || 'images/default-banner.jpg'}`}
+                    alt={tournament.title}
+                />
             </div>
-          </div>
-        );
-      
-      case "Loại lần 2":
-        return (
-          <div className={styles.bracketContainer}>
-            <h2>Bảng Đấu Loại Trực Tiếp (Kép)</h2>
-            <div className={styles.doubleEliminationLayout}>
-              <div className={styles.bracketSection}>
-                <h3>Nhánh Thắng</h3>
-                <div className={styles.bracketRounds}>
-                  <div className={styles.bracketRound}>
-                    <h3>Vòng 1</h3>
-                    <div className={styles.matchup}><div className={styles.player}>WT-P1</div><div className={styles.player}>WT-P2</div></div>
-                    <div className={styles.matchup}><div className={styles.player}>WT-P3</div><div className={styles.player}>WT-P4</div></div>
-                  </div>
-                  <div className={styles.bracketRound}>
-                    <h3>Vòng 2</h3>
-                    <div className={styles.matchup}><div className={styles.player}>WT-Winner1</div><div className={styles.player}>WT-Winner2</div></div>
-                  </div>
-                </div>
-              </div>
-              <div className={styles.bracketSection}>
-                <h3>Nhánh Thua</h3>
-                <div className={styles.bracketRounds}>
-                  <div className={styles.bracketRound}>
-                    <h3>Vòng 1</h3>
-                    <div className={styles.matchup}><div className={styles.player}>LT-P1</div><div className={styles.player}>LT-P2</div></div>
-                    <div className={styles.matchup}><div className={styles.player}>LT-P3</div><div className={styles.player}>LT-P4</div></div>
-                  </div>
-                  <div className={styles.bracketRound}>
-                    <h3>Vòng 2</h3>
-                    <div className={styles.matchup}><div className={styles.player}>LT-Winner1</div><div className={styles.player}>LT-Winner2</div></div>
-                  </div>
-                </div>
-              </div>
-              <div className={styles.bracketSection}>
-                <h3>Chung Kết Tổng</h3>
-                <div className={styles.bracketRounds}>
-                  <div className={styles.bracketRound}>
-                    <h3>Grand Final</h3>
-                    <div className={styles.matchup}><div className={styles.player}>Winner Bracket Final</div><div className={styles.player}>Loser Bracket Final</div></div>
-                  </div>
-                </div>
-              </div>
+
+            <div className={styles["info-section"]}>
+                <h1>{tournament.title}</h1>
+                <p>
+                    {tournament.start_date}  -  {tournament.end_date}
+                </p>
+                <p>{tournament.participants || 0} Participants</p>
             </div>
-          </div>
-        );
 
-      case "Xếp hạng":
-        const rankings = generateMockRankings(tournament.participants);
-        return (
-          <div className={styles.rankingContainer}>
-            <h2>Bảng Xếp Hạng</h2>
-            <table className={styles.rankingTable}>
-              <thead>
-                <tr className={styles.tableHeader}>
-                  <th className={styles.tableCell}>Hạng</th>
-                  <th className={styles.tableCell}>Kỳ Thủ</th>
-                  <th className={styles.tableCell}>Điểm</th>
-                  <th className={styles.tableCell}>Thắng</th>
-                  <th className={styles.tableCell}>Thua</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rankings.map(player => (
-                  <tr key={player.id} className={styles.tableRow}>
-                    <td className={styles.tableCell}>{player.rank}</td>
-                    <td className={styles.tableCell}>{player.playerName}</td>
-                    <td className={styles.tableCell}>{player.score}</td>
-                    <td className={styles.tableCell}>{player.wins}</td>
-                    <td className={styles.tableCell}>{player.losses}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-
-      default:
-        return (
-          <div className={styles.noScheduleMessage}>
-            <h2>Loại hình giải đấu không xác định hoặc chưa có bảng đấu/xếp hạng.</h2>
-            <p>Vui lòng kiểm tra lại loại hình giải đấu hoặc chờ cập nhật.</p>
-          </div>
-        );
-    }
-  };
-
-  return (
-    <div className={styles.pageWrapper}>
-       {/* Banner */}
-        <div className={styles["banner"]}> 
-          <img src={tournament.image} alt={tournament.title} />
+            <div className={styles["tabs"]}>
+                <button onClick={() => navigate(`/tournament/${tournament_id}`)}>📊 Bảng thi đấu</button>
+                <button onClick={() => navigate(`/tournament/${tournament_id}/matches`)}>🎮 Các trận đấu</button>
+            </div>
+            {renderContentBasedOnFormat()}
         </div>
-        {/* Title and Info */}
-        <div className={styles["info-section"]}>
-          <h1>{tournament.title}</h1>
-          <p>
-            {new Date(tournament.start_date).toLocaleDateString()} - {new Date(tournament.end_date).toLocaleDateString()}
-          </p>
-          <p>{tournament.participants || 0} Participants</p>
-        </div>
-        <div className={styles["tabs"]}> 
-          <button onClick={() => navigate(`/tournament/${id}/rank`)}>📊 Bảng thi đấu</button>
-          <button onClick={() => navigate(`/tournament/${id}/matches`)}>🎮 Các trận đấu</button>
-        </div>
-        {renderBracketOrRankingContent()}
-
-      <div className={styles.footerArrow}>
-        <div className={styles.arrow}></div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default TournamentDetailBracket;

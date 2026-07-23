@@ -1,0 +1,401 @@
+/* Styling chung cho toàn bộ bracket page */
+.bracket-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px 0;
+    background-color: #010101; /* Nền nhẹ nhàng hơn */
+}
+
+/* Wrapper cho phần điều khiển (buttons) */
+.bracket-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px; /* Tăng khoảng cách với bracket */
+    padding: 15px 25px;
+    background: color #000;;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    width: 80%; /* Chiều rộng kiểm soát */
+    max-width: 900px;
+}
+
+.generate-bracket-btn, .advance-bracket-btn {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    flex-grow: 1; /* Cho phép nút mở rộng */
+    max-width: 300px;
+}
+
+.generate-bracket-btn:hover, .advance-bracket-btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+}
+
+.generate-bracket-btn:active, .advance-bracket-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tournament-complete-message {
+    text-align: center;
+    font-size: 1.6em; /* Lớn hơn */
+    font-weight: bold;
+    color: #28a745; 
+    margin: 25px 0;
+    padding: 20px;
+    background-color: #d4edda;
+    border: 2px solid #28a745;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+.no-schedule-message {
+    margin: 30px auto 0;
+    text-align: center;
+    padding: 40px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    margin-top: 30px;
+    color: #666;
+    max-width: 600px;
+}
+
+.no-schedule-message h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+/* Bracket Container */
+.bracket-container-wrapper {
+    overflow-x: auto; /* Cho phép cuộn ngang nếu bracket quá lớn */
+    padding: 20px 0;
+    width: 100%; /* Đảm bảo wrapper chiếm toàn bộ chiều rộng */
+    display: flex; /* Dùng flex để căn giữa nếu nội dung nhỏ */
+    justify-content: center;
+}
+
+.bracket-container {
+    display: flex;
+    justify-content: flex-start; /* Bắt đầu từ bên trái */
+    gap: 60px; /* Khoảng cách giữa các vòng đấu */
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    min-width: fit-content; /* Đảm bảo container không bị co lại */
+    align-items: center; /* Căn chỉnh các round từ trên xuống */
+    /*flex-wrap: nowrap; Ngăn không cho các round xuống hàng */
+}
+
+/* Round Styling */
+.round {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; 
+    align-items: center;
+    min-width: 220px; /* Tăng nhẹ chiều rộng round */
+    color: #333;
+    height: 100%;
+}
+
+.round-title {
+    font-weight: bold;
+    margin-bottom: 30px; /* Tăng khoảng cách với match đầu tiên */
+    font-size: 1.3em;
+    color: #000;
+    white-space: nowrap; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Bracket Segment (Winners, Losers, Grand Finals) */
+.bracket-segment {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%; 
+    margin-bottom: 30px; /* Khoảng cách giữa các segment trong cùng một round */
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f8f9fa; /* Nền nhẹ để phân biệt các nhánh */
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+}
+
+.bracket-segment:last-child {
+    margin-bottom: 0;
+}
+
+.bracket-segment-title {
+    font-weight: bold;
+    margin-bottom: 15px;
+    font-size: 1.15em;
+    color: #555;
+    text-align: center;
+    border-bottom: 2px solid #e0e0e0; /* Đường kẻ đậm hơn */
+    padding-bottom: 8px;
+    width: 100%;
+    text-transform: capitalize;
+}
+
+/* Match Box Styling */
+.match {
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    position: relative;
+    width: 200px; 
+    height: 70px; /* Giữ nguyên chiều cao match */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* margin-bottom sẽ được set inline */
+    padding: 0; 
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    overflow: visible; /* Cho phép các đường nối hiển thị ra ngoài */
+}
+
+/* Loại bỏ margin-bottom cho match cuối cùng trong một segment, nếu không được đặt inline */
+/* .bracket-segment .match:last-child {
+    margin-bottom: 0;
+} */
+
+.match:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+}
+
+/* Match Status Colors */
+.match-completed {
+    background-color: #e2f0d6; /* Xanh lá cây nhạt */
+    border-color: #4CAF50; /* Border xanh đậm */
+}
+
+.match-pending {
+    background-color: #fff8e1; /* Vàng nhạt */
+    border-color: #ffc107; /* Border vàng đậm */
+}
+
+/* Player Pair and Player Styling for Alignment */
+.player-pair {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; 
+    justify-content: center; /* Căn giữa các player-pair theo chiều dọc trong match box */
+    height: 100%; /* Đảm bảo player-pair chiếm toàn bộ chiều cao match */
+}
+
+.player {
+    flex: 1; /* Chia đều không gian giữa 2 players */
+    display: flex;
+    align-items: center; /* Căn giữa nội dung theo chiều dọc */
+    padding: 0 12px; /* Loại bỏ padding-top/bottom để text không bị đẩy xuống */
+    font-size: 0.9em;
+    border-bottom: 1px solid #eee;
+    color: #333;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    text-align: left; /* Căn chữ về bên trái */
+    height: 50%; /* Mỗi player chiếm 50% chiều cao của player-pair */
+}
+
+.player:first-child {
+    padding-top: 5px; /* Thêm padding nhẹ cho player đầu tiên */
+}
+.player:last-child {
+    border-bottom: none;
+    padding-bottom: 5px; /* Thêm padding nhẹ cho player cuối cùng */
+}
+
+/* Style cho các ô player trống (placeholder) */
+.player.empty-player {
+    background-color: #f0f0f0; /* Màu nền xám nhẹ */
+    border-color: #ccc;
+    /* Có thể thêm border-radius nhẹ nếu muốn */
+}
+
+
+.match-scores {
+    font-size: 0.85em;
+    color: #555;
+    padding: 5px 12px;
+    display: flex;
+    justify-content: space-around;
+    border-top: 1px solid #eee;
+    background-color: #fdfdfd;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 66px;
+    font-weight: 500;
+}
+
+.match-scores span {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Winner styling */
+.player.winner {
+    font-weight: bold;
+    color: #007bff; /* Màu xanh nổi bật */
+}
+
+/* Connector Lines Styling */
+/* Đường ngang ra khỏi match box */
+.horizontal-line {
+    position: absolute;
+    right: -30px; 
+    top: 50%; /* Căn giữa theo chiều dọc của match box */
+    width: 30px; 
+    height: 2px;
+    background-color: #555;
+    transform: translateY(-1px); /* Điều chỉnh nhỏ để căn giữa chính xác */
+    z-index: 1;
+}
+
+/* Đường dọc nối giữa hai match trong cùng một round */
+.vertical-line {
+    position: absolute;
+    right: -30px; /* Nối từ cuối đường ngang */
+    width: 2px;
+    background-color: #555;
+    z-index: 1;
+    /* Height và top sẽ được tính toán bằng JS và inline style */
+}
+
+/* Đường ngang nối từ đường dọc sang match tiếp theo ở round kế tiếp */
+.horizontal-line-next {
+    position: absolute;
+    right: -60px; /* Từ đây đi vào match tiếp theo */
+    width: 30px; 
+    height: 2px;
+    background-color: #555;
+    transform: translateY(-1px); /* Điều chỉnh nhỏ để căn giữa chính xác */
+    z-index: 1;
+    /* Top sẽ được tính toán bằng JS và inline style */
+}
+
+/* Ranking Table Styling */
+.ranking-container {
+    padding: 30px; 
+    background-color: #ffffff;
+    border-radius: 12px; 
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    margin-top: 40px;
+    width: 90%;
+    max-width: 700px; 
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.ranking-container h2 {
+    color: #333;
+    margin-bottom: 25px;
+    font-size: 2em; 
+    font-weight: 700;
+}
+
+.ranking-table {
+    width: 100%;
+    border-collapse: separate; 
+    border-spacing: 0; 
+    margin-top: 25px;
+    overflow: hidden; 
+    border-radius: 8px; 
+}
+
+.ranking-table th,
+.ranking-table td {
+    padding: 15px 18px; 
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.ranking-table thead tr {
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Bo góc cho thead */
+.ranking-table thead th:first-child {
+    border-top-left-radius: 8px;
+}
+.ranking-table thead th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.ranking-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.ranking-table tbody tr:hover {
+    background-color: #e9f5ff; 
+}
+
+.table-header {
+    font-size: 1.05em;
+}
+
+.table-cell {
+    font-size: 1em;
+    color: #444;
+}
+
+/* Căn giữa cột điểm trong bảng xếp hạng */
+.ranking-table th:nth-child(3), /* Cột Điểm */
+.ranking-table td:nth-child(3) {
+    text-align: center;
+}
+/* Căn giữa cột Hạng */
+.ranking-table th:first-child,
+.ranking-table td:first-child {
+    width: 80px; /* Chiều rộng cho cột Hạng */
+    text-align: center;
+    font-weight: bold;
+}
+/* Style cho Rank 1, 2, 3 */
+.ranking-table tbody tr:first-child .table-cell:first-child { /* Rank 1 */
+    background-color: #ffd700; /* Vàng */
+    color: #333;
+}
+.ranking-table tbody tr:nth-child(2) .table-cell:first-child { /* Rank 2 */
+    background-color: #c0c0c0; /* Bạc */
+    color: #333;
+}
+.ranking-table tbody tr:nth-child(3) .table-cell:first-child { /* Rank 3 */
+    background-color: #cd7f32; /* Đồng */
+    color: #333;
+}
+
+/* Điều chỉnh lại khoảng cách giữa các segment trong round */
+.round > .bracket-segment {
+    margin-top: 30px; /* Khoảng cách giữa các segment trong cùng một round */
+    margin-bottom: 0;
+}
+.round > .bracket-segment:first-child {
+    margin-top: 0; /* Segment đầu tiên không có margin-top */
+}
+
+/* Đảm bảo các đường nối luôn hiển thị */
+.bracket-container .round .bracket-segment .match {
+    z-index: 2; /* Đảm bảo match nằm trên các đường nối */
+    position: relative; /* Quan trọng cho z-index hoạt động */
+}

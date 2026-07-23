@@ -153,7 +153,7 @@ function CreateTournamentPage() {
             <select name="game" onChange={handleChange}>
               <option value="">Chọn game</option>
               <option value="PUBG">PUBG</option>
-              <option value="Valorant">Valorant</option>
+              <option value="Street Fighter"> Street Fighter</option>
               <option value="Chess">Chess</option>
             </select>
             {errors.game && <p style={{ color: "red" }}>{errors.game}</p>}
@@ -214,9 +214,7 @@ function CreateTournamentPage() {
             <button type="submit" className={styles["submit-btn"]}>
               Tạo giải đấu
             </button>
-            {/* <button type="button" className={styles["cancel-btn"]}>
-              Hủy
-            </button> */}
+
           </div>
         </form>
       </div>
