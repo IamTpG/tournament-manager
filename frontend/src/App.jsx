@@ -7,7 +7,6 @@ import Highlights               from "./pages/Highlights";
 
 import Tournaments              from "./pages/Tournaments";
 import CreateTournament         from "./pages/CreateTournament";
-// import TournamentDetail         from './pages/TournamentDetail';
 import TournamentDetail_Matches from './pages/TournamentDetail_Matches';
 import TournamentDetailBracket  from "./pages/TournamentDetail_Bracket";
 import MatchEditPage            from "./pages/EditMatch";
@@ -107,10 +106,6 @@ export default function App() {
             </AdminRoute>
           }
           />
-    
-          {/* <Route path="/create-tournament" element={<CreateTournament />} />
-          <Route path="/admin/tournament/:id/edit" element={<EditTournamentPage />} />
-          <Route path="/tournament/:id/matches/:matchId/edit" element={<MatchEditPage />} /> */}
         </Routes>
 
 
