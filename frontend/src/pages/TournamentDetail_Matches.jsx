@@ -197,7 +197,11 @@ function TournamentDetailsMatch() {
                         <h3 className={styles.dateHeader}>{date}</h3>
                         <div className={styles.matchGroup}>
                             {matchesGroupedByDate[date].map(match => (
-                                <div key={match.id} className={styles.matchCard}>
+                                <div
+                                    key={match.id}
+                                    className={styles.matchCard}
+                                    onClick={() => navigate(`/tournament/${tournament_id}/matches/${match.id}`)}
+                                >
                                     <div className={styles.matchPlayersAndScores}>
                                         {match.players.length > 0 && (
                                             match.players.map((playerID, pIdx) => {

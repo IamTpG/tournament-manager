@@ -157,16 +157,17 @@
     border: 1px solid #ddd;
     border-radius: 6px;
     position: relative;
-    width: 200px; 
+    width: 200px;
     height: 70px; /* Giữ nguyên chiều cao match */
     display: flex;
     flex-direction: column;
     justify-content: center;
     /* margin-bottom sẽ được set inline */
-    padding: 0; 
+    padding: 0;
     transition: all 0.2s ease-in-out;
     box-shadow: 0 3px 8px rgba(0,0,0,0.1);
     overflow: visible; /* Cho phép các đường nối hiển thị ra ngoài */
+    cursor: pointer;
 }
 
 /* Loại bỏ margin-bottom cho match cuối cùng trong một segment, nếu không được đặt inline */
