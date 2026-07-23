@@ -608,12 +608,16 @@ const advanceTournamentBracket = async (req, res) => {
             return res.status(400).json({ message: `Bracket advancement is not applicable for format: ${tournament.format}` });
         }
 
-        // Tìm vòng đấu cao nhất hiện có (bao gồm cả các match chưa hoàn thành)
-        const highestOverallRoundMatch = await match_model.findOne({ tournament_ID: tournament_id })
-                                                .sort({ round: -1 })
-                                                .select('round')
-                                                .lean();
-        const currentRound = highestOverallRoundMatch ? highestOverallRoundMatch.round : 0;
+        // Tìm vòng đấu cao nhất ĐÃ CÓ NGƯỜI CHƠI THẬT (bỏ qua các placeholder rỗng
+        // được tạo sẵn cho các vòng sau bởi createMatches).
+        const highestPopulatedRoundMatch = await match_model.findOne({
+                tournament_ID: tournament_id,
+                'players.0': { $exists: true }
+            })
+            .sort({ round: -1 })
+            .select('round')
+            .lean();
+        const currentRound = highestPopulatedRoundMatch ? highestPopulatedRoundMatch.round : 0;
         
         if (currentRound === 0) {
             return res.status(400).json({ message: 'No matches found. Please create the first round first.' });
@@ -695,142 +699,167 @@ const advanceTournamentBracket = async (req, res) => {
         }
 
 
-        // Logic tạo các match cho vòng tiếp theo (currentRound + 1)
+        // Vòng tiếp theo (currentRound + 1). Mọi vòng sau đều đã được createMatches
+        // tạo sẵn dưới dạng placeholder rỗng, nên từ đây trở đi ta chỉ CẬP NHẬT
+        // (bulkWrite/updateOne) các placeholder đã tồn tại, không insertMany tạo mới.
         const nextRound = currentRound + 1;
-        const nextRoundMatchesToInsert = [];
-        
-        // Ước tính ngày diễn ra vòng tiếp theo
-        const currentRoundOccurenceDates = matchesInCurrentRound.map(m => m.occurence_day);
-        const latestMatchDate = new Date(Math.max(...currentRoundOccurenceDates));
-        const nextRoundDate = new Date(latestMatchDate);
-        nextRoundDate.setDate(latestMatchDate.getDate() + 7); // Ví dụ: 1 tuần sau vòng trước
+        const currentBracketType = matchesInCurrentRound[0]?.bracket_type;
+        const bulkOps = [];
 
-        // --- Logic Ghép Cặp cho Nhánh Thắng (Winners' Bracket) ---
-        // Nếu còn hơn 1 người trong Winners' Bracket, tạo trận mới cho nhánh thắng
+        // --- Nhánh Thắng (Winners' Bracket): luôn an toàn để tự động ghép vòng tiếp theo ---
         if (winnersWB.length > 1) {
-            const shuffledWinnersWB = winnersWB.sort(() => 0.5 - Math.random());
+            const nextWBPlaceholders = await match_model.find({
+                tournament_ID: tournament_id,
+                round: nextRound,
+                bracket_type: 'winners',
+                players: { $size: 0 }
+            }).select('id').lean();
+
+            const expectedWBMatches = Math.ceil(winnersWB.length / 2);
+            if (nextWBPlaceholders.length !== expectedWBMatches) {
+                return res.status(500).json({
+                    message: `Bracket data inconsistency: expected ${expectedWBMatches} empty winners' bracket placeholder(s) at round ${nextRound}, found ${nextWBPlaceholders.length}.`
+                });
+            }
+
+            const shuffledWinnersWB = [...winnersWB].sort(() => 0.5 - Math.random());
             for (let i = 0; i < shuffledWinnersWB.length; i += 2) {
                 const player1 = shuffledWinnersWB[i];
                 const player2 = shuffledWinnersWB[i + 1] || null;
+                const playersForMatch = player2 ? [player1, player2] : [player1];
+                const placeholder = nextWBPlaceholders[Math.floor(i / 2)];
 
-                const playersInNewMatch = [player1];
-                if (player2) playersInNewMatch.push(player2);
-                else { // Nếu số người chơi lẻ, người chơi cuối cùng được BYE
-                    // Trong trường hợp này, match chỉ có 1 người, và họ sẽ tự động thắng
-                    // Điều này đã được xử lý bởi `match.players.length === 1` ở trên
-                }
-
-                nextRoundMatchesToInsert.push({
-                    id: uuidv4(),
-                    tournament_ID: tournament_id,
-                    format: tournament.format,
-                    players: playersInNewMatch,
-                    results: playersInNewMatch.map(pid => ({ player: pid, score: 0 })),
-                    occurence_day: nextRoundDate,
-                    round: nextRound,
-                    status: 'pending',
-                    bracket_type: 'winners' 
+                bulkOps.push({
+                    updateOne: {
+                        filter: { id: placeholder.id, players: { $size: 0 } }, // guard: idempotent against retries
+                        update: {
+                            $set: {
+                                players: playersForMatch,
+                                results: playersForMatch.map(pid => ({ player: pid, score: 0 })),
+                                status: playersForMatch.length === 1 ? 'completed' : 'pending'
+                            }
+                        }
+                    }
                 });
             }
         }
-        
-        // --- Logic Ghép Cặp cho Nhánh Thua (Losers' Bracket) ---
-        // Chỉ xử lý nhánh thua nếu là loại lần 2
+
+        // --- Nhánh Thua (Losers' Bracket) / Chung kết tổng: chỉ áp dụng cho Loại lần 2 ---
+        // Phạm vi cố ý thu hẹp: chỉ hỗ trợ trường hợp luôn AN TOÀN (không cần gộp dữ liệu
+        // từ 2 nguồn hoàn thành ở 2 thời điểm khác nhau). Mọi trường hợp khác báo lỗi rõ
+        // ràng thay vì âm thầm ghép sai dữ liệu. Xem ISSUES.md #11 để hỗ trợ đầy đủ sau.
         if (tournament.format === 'Loại lần 2') {
-            const allLosersBracketPlayers = [...losersWB, ...winnersLB]; 
-            
-            // Nếu có số lượng người chơi lẻ trong nhánh thua, sẽ có một BYE
-            let lbPlayersToPair = [...allLosersBracketPlayers];
-            if (lbPlayersToPair.length % 2 !== 0 && lbPlayersToPair.length > 0) {
-                console.warn("[WARNING] Odd number of players for Losers' Bracket. One player will get a BYE.");
-                // Người chơi cuối cùng sẽ tự động tiến vào vòng tiếp theo mà không đấu
-                // Chúng ta không tạo match cho họ ở đây.
+            if (currentBracketType === 'losers') {
+                return res.status(400).json({
+                    message: "Advancing the losers' bracket beyond its first round isn't supported yet for this tournament. See ISSUES.md issue #11 (fix/losers-bracket-concurrent-advancement)."
+                });
             }
 
-            if (lbPlayersToPair.length > 1) { // Chỉ tạo match nếu có ít nhất 2 người
-                const shuffledLBPlayers = lbPlayersToPair.sort(() => 0.5 - Math.random());
-                for (let i = 0; i < shuffledLBPlayers.length; i += 2) {
-                    const player1 = shuffledLBPlayers[i];
-                    const player2 = shuffledLBPlayers[i + 1] || null;
+            if (currentBracketType === 'winners' && currentRound > 1) {
+                return res.status(400).json({
+                    message: `Winners' Bracket round ${currentRound}'s losers need to merge into an already-active Losers' Bracket, which isn't supported yet. See ISSUES.md issue #11 (fix/losers-bracket-concurrent-advancement).`
+                });
+            }
 
-                    if (!player1 || !player2) { 
-                        // Trường hợp BYE hoặc người chơi lẻ không có đối thủ
-                        // Người chơi này sẽ tự động tiến lên vòng sau, không cần tạo match vật lý.
-                        continue; 
+            // currentBracketType === 'winners' && currentRound === 1: luôn an toàn,
+            // vì đây là lần đầu tiên có người chơi rơi xuống nhánh thua.
+            if (losersWB.length > 0) {
+                const nextLBPlaceholders = await match_model.find({
+                    tournament_ID: tournament_id,
+                    bracket_type: 'losers',
+                    players: { $size: 0 }
+                }).sort({ round: 1 }).lean();
+
+                if (nextLBPlaceholders.length > 0) {
+                    const firstLBRound = nextLBPlaceholders[0].round;
+                    const targetPlaceholders = nextLBPlaceholders.filter(p => p.round === firstLBRound);
+                    const expectedLBMatches = Math.ceil(losersWB.length / 2);
+
+                    if (targetPlaceholders.length !== expectedLBMatches) {
+                        return res.status(500).json({
+                            message: `Bracket data inconsistency: expected ${expectedLBMatches} empty losers' bracket placeholder(s) at round ${firstLBRound}, found ${targetPlaceholders.length}.`
+                        });
                     }
 
-                    const playersInNewMatch = [player1, player2];
-                    
-                    nextRoundMatchesToInsert.push({
-                        id: uuidv4(),
+                    const shuffledLosersWB = [...losersWB].sort(() => 0.5 - Math.random());
+                    for (let i = 0; i < shuffledLosersWB.length; i += 2) {
+                        const player1 = shuffledLosersWB[i];
+                        const player2 = shuffledLosersWB[i + 1] || null;
+                        const playersForMatch = player2 ? [player1, player2] : [player1];
+                        const placeholder = targetPlaceholders[Math.floor(i / 2)];
+
+                        bulkOps.push({
+                            updateOne: {
+                                filter: { id: placeholder.id, players: { $size: 0 } },
+                                update: {
+                                    $set: {
+                                        players: playersForMatch,
+                                        results: playersForMatch.map(pid => ({ player: pid, score: 0 })),
+                                        status: playersForMatch.length === 1 ? 'completed' : 'pending'
+                                    }
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    // Không có vòng nhánh thua nào được tạo sẵn (giải đấu 2 người chơi):
+                    // losersWB chính là nhà vô địch nhánh thua, và winnersWB (vừa tính ở
+                    // trên, vì vòng 1 cũng chính là chung kết nhánh thắng) là nhà vô địch
+                    // nhánh thắng — không cần tra cứu lịch sử.
+                    if (losersWB.length !== 1 || winnersWB.length !== 1) {
+                        return res.status(500).json({
+                            message: 'Unexpected bracket state while setting up Grand Finals.'
+                        });
+                    }
+
+                    const grandFinalsPlaceholder = await match_model.findOne({
                         tournament_ID: tournament_id,
-                        format: tournament.format,
-                        players: playersInNewMatch,
-                        results: playersInNewMatch.map(pid => ({ player: pid, score: 0 })),
-                        occurence_day: nextRoundDate,
-                        round: nextRound, 
-                        status: 'pending',
-                        bracket_type: 'losers' 
-                    });
+                        bracket_type: 'grand_finals',
+                        players: { $size: 0 }
+                    }).lean();
+
+                    if (grandFinalsPlaceholder) {
+                        bulkOps.push({
+                            updateOne: {
+                                filter: { id: grandFinalsPlaceholder.id, players: { $size: 0 } },
+                                update: {
+                                    $set: {
+                                        players: [winnersWB[0], losersWB[0]],
+                                        results: [
+                                            { player: winnersWB[0], score: 0 },
+                                            { player: losersWB[0], score: 0 }
+                                        ],
+                                        status: 'pending'
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        const alreadyPopulated = await match_model.exists({
+                            tournament_ID: tournament_id,
+                            bracket_type: 'grand_finals',
+                            'players.0': { $exists: true }
+                        });
+                        if (!alreadyPopulated) {
+                            return res.status(500).json({ message: 'Grand Finals placeholder not found. Bracket data may be corrupted.' });
+                        }
+                        // else: đã được cập nhật ở một lần gọi trước đó — không cần làm gì thêm.
+                    }
                 }
             }
         }
-        
-        // --- Logic Tạo Grand Finals (Chung kết tổng) ---
-        // Chỉ tạo Grand Finals khi chỉ còn 1 người thắng từ nhánh thắng (winnersWB) 
-        // và 1 người thắng từ nhánh thua (winnersLB)
-        if (tournament.format === 'Loại lần 2' && winnersWB.length === 1 && winnersLB.length === 1) {
-            const wbWinner = winnersWB[0];
-            const lbWinner = winnersLB[0];
-            
-            // Kiểm tra xem Grand Finals đã được tạo chưa
-            const existingGrandFinals = await match_model.findOne({
-                tournament_ID: tournament_id,
-                bracket_type: 'grand_finals'
-            });
 
-            if (!existingGrandFinals) {
-                const grandFinalsMatch = {
-                    id: uuidv4(),
-                    tournament_ID: tournament_id,
-                    format: tournament.format,
-                    players: [wbWinner, lbWinner],
-                    results: [{ player: wbWinner, score: 0 }, { player: lbWinner, score: 0 }],
-                    occurence_day: nextRoundDate, 
-                    round: nextRound, 
-                    status: 'pending',
-                    bracket_type: 'grand_finals' 
-                };
-                await match_model.insertMany([grandFinalsMatch]);
-
-                return res.status(201).json({
-                    message: 'Grand Finals match created!',
-                    data: [grandFinalsMatch]
-                });
-            } else {
-                return res.status(200).json({ message: 'Grand Finals already created.' });
-            }
-        }
-        
-        if (nextRoundMatchesToInsert.length === 0) {
-            // Nếu không có match nào được tạo, có thể giải đấu đã hoàn thành hoặc đang chờ thêm kết quả
-            return res.status(200).json({ message: 'No new matches generated for the next round. Tournament might be completed or awaiting more results.' });
+        if (bulkOps.length === 0) {
+            // Nếu không có match nào được cập nhật, có thể giải đấu đã hoàn thành hoặc đang chờ thêm kết quả
+            return res.status(200).json({ message: 'No new matches updated for the next round. Tournament might be completed or awaiting more results.' });
         }
 
-        // Lưu các trận đấu vòng tiếp theo vào database
-        await match_model.insertMany(nextRoundMatchesToInsert);
+        await match_model.bulkWrite(bulkOps);
 
-        console.log(`[BRACKET ADVANCED] Generated ${nextRoundMatchesToInsert.length} matches for Round ${nextRound} in tournament ${tournament_id}`);
-        res.status(201).json({
-            message: `Bracket advanced to Round ${nextRound}. Matches created.`,
-            data: nextRoundMatchesToInsert.map(match => ({
-                id: match.id,
-                tournament_ID: match.tournament_ID,
-                players: match.players,
-                occurence_day: match.occurence_day,
-                round: match.round,
-                bracket_type: match.bracket_type
-            }))
+        console.log(`[BRACKET ADVANCED] Updated ${bulkOps.length} matches for tournament ${tournament_id}`);
+        res.status(200).json({
+            message: `Bracket advanced. Round ${nextRound} placeholders populated.`,
+            updatedCount: bulkOps.length
         });
 
     } catch (error) {
