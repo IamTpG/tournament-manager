@@ -490,37 +490,38 @@ function TournamentDetailBracket() {
             return `Vòng ${currentRoundNumber}`;
         };
 
-        // Xác định vòng đấu cao nhất đã hoàn thành để biết có thể advance hay không
-        // Logic này cần tìm các match thực sự (có players) đã completed.
-        const maxCompletedRoundNumber = fetchedMatches.reduce((max, match) => 
-            match.status === 'completed' && match.players.length > 0 ? Math.max(max, match.round) : max, 0
-        );
-        
-        // Vòng cao nhất tổng thể trong bracket (kể cả placeholder)
+        // Vòng cao nhất tổng thể trong bracket (kể cả placeholder) - dùng cho việc
+        // xác định trận đấu cuối cùng khi kiểm tra giải đấu đã kết thúc chưa (bên dưới).
         const highestRoundOverall = sortedRoundNumbers.length > 0 ? sortedRoundNumbers[sortedRoundNumbers.length - 1] : 0;
-        
-        // Có thể tiến độ nếu vòng cao nhất đã hoàn thành (không có match pending) VÀ không phải là vòng cuối cùng của bracket
+
+        // Vòng đấu cao nhất ĐÃ CÓ NGƯỜI CHƠI THẬT (bỏ qua các placeholder rỗng của
+        // các vòng sau, cùng cách xử lý với advanceTournamentBracket ở backend).
+        const highestPopulatedRoundNumber = fetchedMatches.reduce((max, match) =>
+            match.players.length > 0 ? Math.max(max, match.round) : max, 0
+        );
+
+        // Có thể tiến độ nếu vòng hiện tại (có người chơi thật) đã hoàn thành VÀ không phải là vòng cuối cùng của bracket
         let canAdvance = false;
-        if (highestRoundOverall > 0) {
-             const matchesInHighestOverallRound = bracket.find(r => r.roundNumber === highestRoundOverall);
-             const allMatchesInHighestOverallRoundAreCompleted = matchesInHighestOverallRound && 
-                                                                 [...matchesInHighestOverallRound.winners, 
-                                                                  ...matchesInHighestOverallRound.losers, 
-                                                                  ...matchesInHighestOverallRound.grand_finals]
+        if (highestPopulatedRoundNumber > 0) {
+             const matchesInHighestPopulatedRound = bracket.find(r => r.roundNumber === highestPopulatedRoundNumber);
+             const allMatchesInHighestPopulatedRoundAreCompleted = matchesInHighestPopulatedRound &&
+                                                                 [...matchesInHighestPopulatedRound.winners,
+                                                                  ...matchesInHighestPopulatedRound.losers,
+                                                                  ...matchesInHighestPopulatedRound.grand_finals]
                                                                   .filter(m => m.players.length > 0) // Chỉ xét match có người chơi
                                                                   .every(m => m.status === 'completed');
 
             // Kiểm tra xem đã đến trận chung kết tổng chưa (nếu là Loại lần 2)
-            const isGrandFinalsRound = matchesInHighestOverallRound && matchesInHighestOverallRound.grand_finals.length > 0;
-            const isSingleEliminationFinal = tournament.format === 'Loại trực tiếp' && 
-                                             matchesInHighestOverallRound && 
-                                             matchesInHighestOverallRound.winners.length === 1 && 
-                                             matchesInHighestOverallRound.winners[0].players.length > 0;
+            const isGrandFinalsRound = matchesInHighestPopulatedRound && matchesInHighestPopulatedRound.grand_finals.length > 0;
+            const isSingleEliminationFinal = tournament.format === 'Loại trực tiếp' &&
+                                             matchesInHighestPopulatedRound &&
+                                             matchesInHighestPopulatedRound.winners.length === 1 &&
+                                             matchesInHighestPopulatedRound.winners[0].players.length > 0;
 
-            if (allMatchesInHighestOverallRoundAreCompleted && !isGrandFinalsRound && !isSingleEliminationFinal) {
-                // Nếu vòng cao nhất đã hoàn thành và chưa phải chung kết, thì có thể advance
+            if (allMatchesInHighestPopulatedRoundAreCompleted && !isGrandFinalsRound && !isSingleEliminationFinal) {
+                // Nếu vòng hiện tại đã hoàn thành và chưa phải chung kết, thì có thể advance
                 canAdvance = true;
-            } else if (tournament.format === 'Loại lần 2' && isGrandFinalsRound && matchesInHighestOverallRound.grand_finals.every(m => m.status === 'completed')) {
+            } else if (tournament.format === 'Loại lần 2' && isGrandFinalsRound && matchesInHighestPopulatedRound.grand_finals.every(m => m.status === 'completed')) {
                 // Grand Finals đã hoàn thành, giải đấu kết thúc.
                 canAdvance = false;
             }
