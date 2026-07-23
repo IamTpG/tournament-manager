@@ -15,8 +15,7 @@ function TournamentDetailsMatch() {
     const [players, setPlayers] = useState([]); // State để lưu danh sách người chơi để mapping ID ra tên
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    //const isLoggedIn = !!localStorage.getItem("jwtToken"); 
-    const [isLoggedIn, setIsLoggedIn] = useState(false); 
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     // Hàm để tìm tên người chơi từ ID
     const getPlayerName = useCallback((playerId) => {
@@ -27,70 +26,6 @@ function TournamentDetailsMatch() {
         }
         return player ? player.name_in_tournament : playerId; 
     }, [players]);
-
-
-  
-
-    // Giữ nguyên useCallback
-    // const fetchData = useCallback(async () => {
-    //     const token = localStorage.getItem("jwtToken");
-    //     const isLoggedIn = !!token;
-    //     const config = {
-    //         headers: isLoggedIn ? { 'Authorization': `Bearer ${token}` } : {}
-    //     };
-
-    //     try {
-    //         setLoading(true);
-    //         setError(null);
-
-    //         // Fetch tournament info
-    //         const tournamentUrl = isLoggedIn
-    //             ? `http://localhost:5000/api/admin/tournament/${tournament_id}`
-    //             : `http://localhost:5000/api/tournament/${tournament_id}`;
-    //         const tournamentRes = await axios.get(tournamentUrl, config);
-    //         setTournament(tournamentRes.data);
-
-    //         // Fetch players
-    //         const playersUrl = isLoggedIn
-    //             ? `http://localhost:5000/api/admin/members/tournament/${tournament_id}`
-    //             : `http://localhost:5000/api/admin/members/tournament/${tournament_id}/public`;
-            
-    //         const playersRes = await axios.get(playersUrl, config);
-    //         setPlayers(playersRes.data);
-
-    //         // Fetch matches
-    //         try {
-    //             const matchesUrl = isLoggedIn
-    //                 ? `http://localhost:5000/api/admin/tournament/${tournament_id}/matches`
-    //                 : `http://localhost:5000/api/tournament/${tournament_id}/matches`;
-                
-    //             const matchesRes = await axios.get(matchesUrl, config);
-    //             setMatches(matchesRes.data);
-    //         } catch (matchesErr) {
-    //             if (matchesErr.response?.status === 404) {
-    //                 setMatches([]);
-    //             } else {
-    //                 console.error("Failed to fetch matches:", matchesErr);
-    //                 setMatches([]);
-    //             }
-    //         }
-    //     } catch (err) {
-    //         console.error("Failed to fetch data:", err);
-    //         if (err.response?.status === 404) {
-    //             setError("Không tìm thấy giải đấu.");
-    //         } else if (err.response?.status === 401) {
-    //             setError("Bạn không có quyền truy cập. Vui lòng đăng nhập lại.");
-    //         } else {
-    //             setError("Không thể tải thông tin giải đấu. Vui lòng thử lại.");
-    //         }
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // }, [tournament_id]);
-    // useEffect(() => {
-    //     fetchData();
-    // }, [fetchData]);
-
 
     // Hàm để kiểm tra trạng thái đăng nhập và cập nhật state
     const checkLoginStatus = useCallback(() => {
@@ -209,8 +144,6 @@ function TournamentDetailsMatch() {
     // Cập nhật lại logic kiểm tra ngày bắt đầu
     const tournamentStartDate = convertToValidDateObject(tournament.start_date);
     const hasTournamentStarted = tournamentStartDate && new Date() >= tournamentStartDate;
-   
-    // const hasTournamentStarted = tournament ? (new Date() >= new Date(tournament.start_date)) : false;
 
 
     // Hàm render danh sách trận đấu hoặc thông báo
