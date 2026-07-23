@@ -10,7 +10,7 @@ const news_model = require('../model/news');
  * // POST /api/news
  */
 const createNews = async (req, res) => {
-    const { title, content, published_day } = req.body;
+    const { image, title, content, link, published_day } = req.body;
 
     try {
         const new_news = new news_model({
