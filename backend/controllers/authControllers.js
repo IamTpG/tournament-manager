@@ -1,5 +1,6 @@
 const account = require('../model/admin_account');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
 /**
  * Authenticates a user and returns a JWT token on success.
@@ -15,12 +16,7 @@ const login = async (req, res) => {
         const admin_account = await account.findOne({username});
         if (!admin_account) return res.status(404).json({message: 'User not found'});
 
-        // const is_match = await bcrypt.compare(password, admin_account.password);
-        let is_match = false
-        if (password === admin_account.password) {
-            is_match = true
-        }
-
+        const is_match = await bcrypt.compare(password, admin_account.password);
         if (!is_match) return res.status(401).json({message: 'Incorrect password'});
 
         const token = jwt.sign(
