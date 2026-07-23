@@ -51,8 +51,6 @@ export default function App() {
                 if (token) {
                   localStorage.removeItem("jwtToken");
                   window.location.reload();
-                } else {
-                  navigate("/login");
                 }
               }}
               style={{ cursor: "pointer" }}
