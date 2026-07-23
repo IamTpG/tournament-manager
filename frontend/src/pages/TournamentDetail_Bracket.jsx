@@ -348,6 +348,7 @@ function TournamentDetailBracket() {
                                                 style={{
                                                     marginBottom: matchIndex !== roundData.winners.length - 1 ? `${getGapHeight(roundIndex)}px` : 0,
                                                 }}
+                                                onClick={() => navigate(`/tournament/${tournament_id}/matches/${match.id}`)}
                                             >
                                                 <div className="player-pair">
                                                     {match.players.length > 0 ? ( // Chỉ render player nếu có player
@@ -432,6 +433,7 @@ function TournamentDetailBracket() {
                                                 style={{
                                                     marginBottom: matchIndex !== roundData.losers.length - 1 ? `${getGapHeight(roundIndex)}px` : 0,
                                                 }}
+                                                onClick={() => navigate(`/tournament/${tournament_id}/matches/${match.id}`)}
                                             >
                                                 <div className="player-pair">
                                                     {match.players.length > 0 ? ( // Chỉ render player nếu có player
@@ -508,12 +510,13 @@ function TournamentDetailBracket() {
                                             <div
                                                 className={`match ${match.status === 'completed' ? 'match-completed' : 'match-pending'}`}
                                                 key={match.id}
+                                                onClick={() => navigate(`/tournament/${tournament_id}/matches/${match.id}`)}
                                             >
                                                 <div className="player-pair">
                                                     {match.players.length > 0 ? ( // Chỉ render player nếu có player
                                                         match.players.map((playerID, pIdx) => (
-                                                            <div 
-                                                                key={pIdx} 
+                                                            <div
+                                                                key={pIdx}
                                                                 className={`player ${match.status === 'completed' && playerID === winnerId ? 'winner' : ''}`}
                                                             >
                                                                 {getPlayerName(playerID)}
