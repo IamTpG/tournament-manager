@@ -6,11 +6,6 @@ const {
 } = require('../middleware/verifyToken');
 
 const {
-    getRegistersByTournamentAndStatus,
-    updateStatusOfRegister
-} = require('../controllers/registrationControllers');
-
-const {
     createTournament,
     getTournaments,
     viewTournamentInformation,
@@ -50,12 +45,6 @@ admin_router.get('/highlight', getAllHighlights);
 admin_router.post('/news', verifyToken, createNews);
 
 admin_router.get('/news', getAllNews);
-
-
-// Participants management
-admin_router.get('/registration/:tournament_id/participants/:status', getRegistersByTournamentAndStatus);
-
-admin_router.put('/registration/:tournament_id/participants', verifyToken, updateStatusOfRegister);
 
 
 // Tournaments management

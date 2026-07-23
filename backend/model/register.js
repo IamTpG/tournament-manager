@@ -11,13 +11,11 @@ const register_schema = new mongoose.Schema({
   },
   personal_id: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   email: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   phone: {
     type: String,
@@ -41,5 +39,10 @@ const register_schema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+// Uniqueness is scoped per tournament, not global — the same person can
+// register for multiple tournaments, just not twice for the same one.
+register_schema.index({ tournament_id: 1, personal_id: 1 }, { unique: true });
+register_schema.index({ tournament_id: 1, email: 1 }, { unique: true });
 
 module.exports = mongoose.model('register', register_schema);
