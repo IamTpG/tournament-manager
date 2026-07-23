@@ -263,7 +263,7 @@ const createMatches = async (req, res) => {
                 const numRoundsLB = Math.ceil(Math.log2(powerOfTwoSize)) * 2 - 2; 
                 
                 // Số match ban đầu trong nhánh thua (khi người thua từ WB round 1, 2 rơi xuống)
-                let numMatchesInLosersRound = powerOfTwoTwoSize / 4; 
+                let numMatchesInLosersRound = powerOfTwoSize / 4;
 
                 for (let round = 1; round <= numRoundsLB; round++) {
                     let matchesThisRound;
