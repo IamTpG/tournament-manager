@@ -955,6 +955,21 @@ const updateMatchResult = async (req, res) => {
             }
         }
 
+        // Trận đấu loại trực tiếp 1-đấu-1 không được kết thúc hòa — nếu hòa, phải nhập
+        // điểm số quyết định (theo cách tiebreaker thực tế đã diễn ra), không cho lưu ở đây.
+        if (match.status === 'completed' && match.players.length === 2) {
+            const tournament = await tournament_model.findOne({ id: match.tournament_ID });
+            if (tournament && (tournament.format === 'Loại trực tiếp' || tournament.format === 'Loại lần 2')) {
+                const player1Result = results.find(r => r.player === match.players[0]);
+                const player2Result = results.find(r => r.player === match.players[1]);
+                if (player1Result && player2Result && player1Result.score === player2Result.score) {
+                    return res.status(400).json({
+                        message: 'This match cannot end in a draw. Please enter a decisive score reflecting how the tie was actually resolved (e.g. a tiebreaker or playoff).'
+                    });
+                }
+            }
+        }
+
         // Cập nhật các trường mới
         if (highlightLink !== undefined) {
             match.highlight_link = highlightLink;
@@ -962,7 +977,7 @@ const updateMatchResult = async (req, res) => {
         if (notes !== undefined) {
             match.notes = notes;
         }
-        
+
         await match.save();
         res.json({ message: 'Match result updated successfully', data: match });
 
