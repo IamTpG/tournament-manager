@@ -13,18 +13,17 @@ const createNews = async (req, res) => {
     const { image, title, content, link, published_day } = req.body;
 
     try {
-        const new_news = new news_model({
-            image,
-            title,
-            content,
-            link,
-            published_day
-        });
+        const news_data = { image, title, content, link, published_day };
 
-        // Remove undefined/null fields to let default values work
-        Object.keys(new_news).forEach(
-            key => (new_news[key] == null) && delete new_news[key]
+        // Bỏ các trường null/undefined để schema dùng giá trị mặc định.
+        // Phải làm trên object THƯỜNG trước khi khởi tạo model: bản cũ chạy
+        // Object.keys() trên Mongoose document nên không xoá được gì, khiến
+        // `published_day: null` lọt vào DB và làm getAllNews 500 vĩnh viễn.
+        Object.keys(news_data).forEach(
+            key => (news_data[key] == null) && delete news_data[key]
         );
+
+        const new_news = new news_model(news_data);
 
         await new_news.save();
         console.log('News saved!');

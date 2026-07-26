@@ -30,6 +30,7 @@
 // module.exports = mongoose.model('match', match_schema);
 
 const mongoose = require('mongoose');
+const { MATCH_STATUSES, BRACKET_TYPES } = require('../constants/enums');
 
 const match_schema = new mongoose.Schema({
   id: {
@@ -63,12 +64,12 @@ const match_schema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'ongoing', 'completed', 'cancelled'], // Trạng thái của match
+    enum: MATCH_STATUSES, // Trạng thái của match
     default: 'pending' // Mặc định là 'pending' (chưa diễn ra)
   },
   bracket_type: {
     type: String,
-    enum: ['winners', 'losers', 'grand_finals'], // Nhánh thắng, nhánh thua, chung kết tổng
+    enum: BRACKET_TYPES, // Nhánh thắng, nhánh thua, chung kết tổng
     required: true,
     default: 'winners' // Mặc định các trận vòng đầu tiên thuộc nhánh thắng
   }

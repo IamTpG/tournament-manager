@@ -4,8 +4,17 @@ const bcrypt = require('bcrypt')
 const SALT_ROUNDS = 10
 
 const admin_schema = new mongoose.Schema({
-    username: String,
-    password: String
+    username: {
+        type: String,
+        required: true,
+        unique: true, // trước đây có thể tạo hai admin trùng tên đăng nhập
+        trim: true,
+        maxlength: 100
+    },
+    password: {
+        type: String,
+        required: true
+    }
 });
 
 // Only fires on .save()/.create() (document middleware) — updating password
