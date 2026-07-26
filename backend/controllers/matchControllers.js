@@ -456,12 +456,31 @@ const advanceTournamentBracket = async (req, res) => {
         const numRoundsWB = Math.max(...allMatches.filter(m => m.bracket_type === 'winners').map(m => m.round));
         const lbRounds = allMatches.filter(m => m.bracket_type === 'losers').map(m => m.round);
         const numRoundsLB = lbRounds.length ? Math.max(...lbRounds) - numRoundsWB : 0;
-        const grandFinalsMatch = allMatches.find(m => m.bracket_type === 'grand_finals');
+
+        // Có tối đa 2 match 'grand_finals': ván 1 (round thấp hơn, do createMatches tạo
+        // sẵn) và ván reset (round cao hơn, chỉ được tạo bên dưới khi vô địch Nhánh Thua
+        // thắng ván 1). Quy ước bắt buộc: players[0] = vô địch WB, players[1] = vô địch LB.
+        const grandFinalsMatches = allMatches
+            .filter(m => m.bracket_type === 'grand_finals')
+            .sort((a, b) => a.round - b.round);
+        const grandFinalsGame1 = grandFinalsMatches[0];
+        const grandFinalsReset = grandFinalsMatches[1];
 
         // --- Giải đấu đã kết thúc chưa? ---
-        if (grandFinalsMatch && grandFinalsMatch.status === 'completed') {
-            const { winners, losers } = determineRoundOutcome([grandFinalsMatch]);
-            return res.status(200).json({ message: 'Tournament completed!', winner: winners[0], runnerUp: losers[0] });
+        if (grandFinalsReset) {
+            // Đã có ván reset: đây mới là ván quyết định, ván 1 không còn ý nghĩa phân định.
+            if (grandFinalsReset.status === 'completed') {
+                const { winners, losers } = determineRoundOutcome([grandFinalsReset]);
+                return res.status(200).json({ message: 'Tournament completed!', winner: winners[0], runnerUp: losers[0] });
+            }
+        } else if (grandFinalsGame1 && grandFinalsGame1.status === 'completed') {
+            const { winners, losers } = determineRoundOutcome([grandFinalsGame1]);
+            // Vô địch WB thắng ván 1 ⇒ đối thủ đủ 2 thua ⇒ vô địch luôn, không cần reset.
+            if (winners[0] === grandFinalsGame1.players[0]) {
+                return res.status(200).json({ message: 'Tournament completed!', winner: winners[0], runnerUp: losers[0] });
+            }
+            // Ngược lại (vô địch LB thắng): cả hai cùng 1 thua ⇒ KHÔNG return, để khối
+            // bên dưới tạo ván reset quyết định.
         }
 
         if (tournament.format === 'Loại trực tiếp') {
@@ -534,7 +553,7 @@ const advanceTournamentBracket = async (req, res) => {
             }
 
             // --- Chung kết tổng: cần CẢ nhà vô địch WB LẪN nhà vô địch LB ---
-            if (grandFinalsMatch && grandFinalsMatch.players.length === 0) {
+            if (grandFinalsGame1 && grandFinalsGame1.players.length === 0) {
                 const wbFinal = getRoundOutcome(numRoundsWB);
                 if (wbFinal) {
                     let lbChampion = null;
@@ -547,9 +566,51 @@ const advanceTournamentBracket = async (req, res) => {
                         if (lbFinal) lbChampion = lbFinal.winners[0];
                     }
                     if (lbChampion) {
-                        stageAdvancement(grandFinalsMatch.round, 'grand_finals', [wbFinal.winners[0], lbChampion]);
+                        // KHÔNG dùng stageAdvancement/buildAdvancementOps ở đây: helper đó xáo
+                        // trộn danh sách trước khi ghép, làm mất thông tin ai là vô địch WB / LB
+                        // — thứ tự này chính là căn cứ để áp dụng luật bracket reset.
+                        const wbChampion = wbFinal.winners[0];
+                        bulkOps.push({
+                            updateOne: {
+                                filter: { id: grandFinalsGame1.id, players: { $size: 0 } },
+                                update: {
+                                    $set: {
+                                        players: [wbChampion, lbChampion],
+                                        results: [{ player: wbChampion, score: 0 }, { player: lbChampion, score: 0 }],
+                                        status: 'pending'
+                                    }
+                                }
+                            }
+                        });
+                        roundsAdvanced.push({ round: grandFinalsGame1.round, bracket_type: 'grand_finals', matchesFilled: 1 });
                     }
                 }
+            } else if (grandFinalsGame1 && grandFinalsGame1.status === 'completed' && !grandFinalsReset) {
+                // Bracket reset: chạy được tới đây nghĩa là vô địch LB đã thắng ván 1 (nếu vô
+                // địch WB thắng thì hàm đã return sớm ở trên). Cả hai cùng 1 thua ⇒ tạo ván
+                // thứ hai để phân định. Chỉ tạo khi chưa tồn tại ⇒ gọi lặp lại vẫn an toàn.
+                const wbChampion = grandFinalsGame1.players[0];
+                const lbChampion = grandFinalsGame1.players[1];
+                const resetRound = grandFinalsGame1.round + 1;
+                const resetDate = new Date(grandFinalsGame1.occurence_day);
+                resetDate.setDate(resetDate.getDate() + 1);
+
+                bulkOps.push({
+                    insertOne: {
+                        document: {
+                            id: uuidv4(),
+                            tournament_ID: tournament_id,
+                            format: tournament.format,
+                            players: [wbChampion, lbChampion],
+                            results: [{ player: wbChampion, score: 0 }, { player: lbChampion, score: 0 }],
+                            occurence_day: resetDate,
+                            round: resetRound,
+                            status: 'pending',
+                            bracket_type: 'grand_finals'
+                        }
+                    }
+                });
+                roundsAdvanced.push({ round: resetRound, bracket_type: 'grand_finals', matchesFilled: 1 });
             }
         }
 
