@@ -31,80 +31,57 @@ const generateRoundOneMatches = (players, tournamentId, format, occurenceDate) =
     const nextPowerOfTwo = getNextPowerOfTwo(numActualParticipants);
     const numByes = nextPowerOfTwo - numActualParticipants;
 
-    let currentPlayers = [...players]; 
-
-    // Thêm các BYE players để đủ số lượng lũy thừa của 2
-    for (let i = 0; i < numByes; i++) {
-        currentPlayers.push({ id: `BYE_PLAYER_${uuidv4()}`, name_in_tournament: 'BYE' }); 
-    }
-    
-    console.log(`[DEBUG:generateRoundOneMatches] Initial players count: ${players.length}`);
-    console.log(`[DEBUG:generateRoundOneMatches] nextPowerOfTwo: ${nextPowerOfTwo}, numByes: ${numByes}`);
-    console.log(`[DEBUG:generateRoundOneMatches] currentPlayers after BYE padding: ${currentPlayers.length}`);
-
-    // Xáo trộn ngẫu nhiên danh sách người chơi
-    for (let i = currentPlayers.length - 1; i > 0; i--) {
+    // Xáo trộn NGƯỜI CHƠI THẬT trước, rồi mới chia ra ai nhận BYE — đảm bảo mỗi
+    // BYE luôn ghép với đúng 1 người chơi thật, không bao giờ có 2 BYE ghép với
+    // nhau. Nếu 2 BYE ghép nhau, trận đó phải bị bỏ hoàn toàn, khiến vòng 1 tạo
+    // ra ÍT hơn nextPowerOfTwo/2 người thắng — phá vỡ giả định "từ vòng 2 trở đi
+    // bracket luôn sạch" mà toàn bộ phần tạo placeholder còn lại (vòng 2+ của
+    // WB, và mọi vòng LB) đều dựa vào.
+    const shuffledPlayers = [...players];
+    for (let i = shuffledPlayers.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [currentPlayers[i], currentPlayers[j]] = [currentPlayers[j], currentPlayers[i]];
+        [shuffledPlayers[i], shuffledPlayers[j]] = [shuffledPlayers[j], shuffledPlayers[i]];
     }
+
+    const byeRecipients = shuffledPlayers.slice(0, numByes);
+    const headToHeadPlayers = shuffledPlayers.slice(numByes); // luôn có số lượng chẵn
 
     const roundOneMatches = [];
     const firstRoundDate = new Date(occurenceDate);
-    firstRoundDate.setHours(8, 0, 0, 0); 
+    firstRoundDate.setHours(8, 0, 0, 0);
 
-    // Loop through pairs to create matches
-    for (let i = 0; i < currentPlayers.length; i += 2) {
-        const player1Obj = currentPlayers[i];
-        // Ensure player2Obj is defined. If no player2, it implies a bye for player1.
-        // This 'ghost' BYE is just for internal pairing logic if numParticipants is odd.
-        const player2Obj = currentPlayers[i + 1] || { id: `BYE_PLAYER_GHOST_${uuidv4()}`, name_in_tournament: 'BYE' };
-
-        const playerIDsInMatch = [];
-        const initialResults = [];
-        let matchStatus = 'pending';
-
-        const isPlayer1Bye = player1Obj.name_in_tournament === 'BYE';
-        const isPlayer2Bye = player2Obj.name_in_tournament === 'BYE';
-
-        if (isPlayer1Bye && isPlayer2Bye) {
-            // This case should ideally not happen if numActualParticipants >= 1 and BYEs are correctly handled.
-            // If it does, it means a truly empty match slot. We skip creating it.
-            console.warn("Skipping match creation: Both players are BYE. This indicates an issue with player padding or participant count.");
-            continue; 
-        } else if (isPlayer1Bye) {
-            // Player 2 is a real player, Player 1 is BYE. Player 2 advances.
-            playerIDsInMatch.push(player2Obj.id); 
-            initialResults.push({ player: player2Obj.id, score: 1 });
-            initialResults.push({ player: player1Obj.id, score: 0 }); // BYE player "loses"
-            matchStatus = 'completed'; 
-        } else if (isPlayer2Bye) {
-            // Player 1 is a real player, Player 2 is BYE. Player 1 advances.
-            playerIDsInMatch.push(player1Obj.id); 
-            initialResults.push({ player: player1Obj.id, score: 1 });
-            initialResults.push({ player: player2Obj.id, score: 0 }); // BYE player "loses"
-            matchStatus = 'completed';
-        } else {
-            // Both are real players. Regular match.
-            playerIDsInMatch.push(player1Obj.id);
-            playerIDsInMatch.push(player2Obj.id);
-            initialResults.push({ player: player1Obj.id, score: 0 });
-            initialResults.push({ player: player2Obj.id, score: 0 });
-            matchStatus = 'pending';
-        }
-
+    // Các trận BYE: người chơi thật thắng tự động, không có đối thủ.
+    for (const player of byeRecipients) {
         roundOneMatches.push({
             id: uuidv4(),
             tournament_ID: tournamentId,
             format: format,
-            players: playerIDsInMatch, // This will be `[real_player_id]` for BYE matches or `[p1_id, p2_id]` for regular matches
-            results: initialResults,
+            players: [player.id],
+            results: [{ player: player.id, score: 1 }],
             occurence_day: firstRoundDate,
             round: 1,
-            status: matchStatus,
+            status: 'completed',
             bracket_type: 'winners'
         });
     }
-    console.log(`[DEBUG:generateRoundOneMatches] Matches generated for Round 1: ${roundOneMatches.length}`);
+
+    // Các trận đối đầu thật giữa những người chơi còn lại.
+    for (let i = 0; i < headToHeadPlayers.length; i += 2) {
+        const player1 = headToHeadPlayers[i];
+        const player2 = headToHeadPlayers[i + 1];
+        roundOneMatches.push({
+            id: uuidv4(),
+            tournament_ID: tournamentId,
+            format: format,
+            players: [player1.id, player2.id],
+            results: [{ player: player1.id, score: 0 }, { player: player2.id, score: 0 }],
+            occurence_day: firstRoundDate,
+            round: 1,
+            status: 'pending',
+            bracket_type: 'winners'
+        });
+    }
+
     return roundOneMatches;
 };
 
@@ -259,24 +236,37 @@ const createMatches = async (req, res) => {
 
             // 3. Nếu là Loại lần 2 (Double Elimination), tạo thêm nhánh thua (LB) và chung kết tổng
             if (tournament.format === 'Loại lần 2') {
-                // Số vòng nhánh thua ước tính. Có nhiều cách tính, đây là một cách đơn giản hóa.
-                const numRoundsLB = Math.ceil(Math.log2(powerOfTwoSize)) * 2 - 2; 
-                
-                // Số match ban đầu trong nhánh thua (khi người thua từ WB round 1, 2 rơi xuống)
-                let numMatchesInLosersRound = powerOfTwoSize / 4;
+                // Số vòng nhánh thua - không bị ảnh hưởng bởi BYE, chỉ phụ thuộc powerOfTwoSize
+                const numRoundsLB = Math.ceil(Math.log2(powerOfTwoSize)) * 2 - 2;
 
+                // Số người thua thực tế ở WB vòng 1 (chỉ tính match 2 người chơi thật —
+                // match BYE chỉ có 1 người chơi, thắng tự động, không tạo ra người thua).
+                const wbRound1LosersCount = roundOneMatches.filter(m => m.players.length === 2).length;
+
+                // Mô phỏng từng vòng LB theo đúng logic ghép nguồn của advanceTournamentBracket,
+                // dùng số người thua WB vòng 1 THỰC TẾ thay vì công thức powerOfTwoSize/4 (vốn giả
+                // định không có BYE) — để số placeholder tạo trước khớp với số thực sự cần khi advance.
+                let winnersFromPrevLBRound = 0;
                 for (let round = 1; round <= numRoundsLB; round++) {
-                    let matchesThisRound;
-                    if (round % 2 !== 0) { // Odd rounds of LB (e.g., LB R1, LB R3)
-                        matchesThisRound = numMatchesInLosersRound;
-                    } else { // Even rounds of LB (e.g., LB R2, LB R4)
-                        matchesThisRound = numMatchesInLosersRound; 
-                        numMatchesInLosersRound /= 2; // Number of matches halves every two LB rounds
+                    let incomingPlayers;
+                    if (round === 1) {
+                        incomingPlayers = wbRound1LosersCount;
+                    } else if (round % 2 !== 0) { // Vòng LB lẻ (>1): chỉ nhận người thắng vòng LB trước
+                        incomingPlayers = winnersFromPrevLBRound;
+                    } else { // Vòng LB chẵn: điểm gộp — người thắng vòng LB trước + người thua WB tương ứng
+                        const wbSourceRound = round / 2 + 1;
+                        // WB vòng >=2 luôn "sạch" (không bị ảnh hưởng bởi BYE ở vòng 1)
+                        const wbSourceLosersCount = powerOfTwoSize / Math.pow(2, wbSourceRound);
+                        incomingPlayers = winnersFromPrevLBRound + wbSourceLosersCount;
                     }
+
+                    const matchesThisRound = Math.ceil(incomingPlayers / 2);
+                    winnersFromPrevLBRound = matchesThisRound; // mỗi match (kể cả match lẻ tự thắng) tạo đúng 1 người thắng
+
                     if (matchesThisRound < 1) continue;
 
                     const nextRoundDate = new Date(tournamentStartDate);
-                    nextRoundDate.setDate(tournamentStartDate.getDate() + (numRoundsWB + round - 1) * 7); 
+                    nextRoundDate.setDate(tournamentStartDate.getDate() + (numRoundsWB + round - 1) * 7);
 
                     allMatchesToInsert.push(...generatePlaceholderMatches(
                         numRoundsWB + round, // LB rounds continue numbering after WB
