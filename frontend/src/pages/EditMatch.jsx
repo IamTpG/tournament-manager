@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './TournamentDetail.module.css'; // Dùng chung style
+import { getServerError } from '../utils/validation';
 
 function MatchEditPage() {
     // Log này sẽ chạy ngay khi component này được render
@@ -20,6 +21,7 @@ function MatchEditPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [saving, setSaving] = useState(false); // Trạng thái khi đang lưu
+    const [scoreErrors, setScoreErrors] = useState({}); // Lỗi nhập điểm theo từng người chơi
 
     // Hàm để tìm tên người chơi từ ID
     const getPlayerName = useCallback((playerId) => {
@@ -118,8 +120,33 @@ function MatchEditPage() {
     // Xử lý lưu kết quả
     const handleSave = async (e) => {
         e.preventDefault();
+
+        // Kiểm tra trước khi gửi: mọi người chơi phải có điểm, và điểm phải là
+        // số nguyên không âm. Bản cũ âm thầm quy điểm bỏ trống thành 0, khiến một
+        // trận có thể bị đánh dấu hoàn thành với kết quả chưa từng được nhập.
+        const newErrors = {};
+        for (const playerId of match.players) {
+            const raw = playerScores[playerId];
+            if (raw === '' || raw === undefined || raw === null) {
+                newErrors[playerId] = 'Chưa nhập điểm';
+            } else if (!Number.isInteger(Number(raw)) || Number(raw) < 0) {
+                newErrors[playerId] = 'Điểm phải là số nguyên không âm';
+            }
+        }
+
+        // Trận loại trực tiếp 1-đấu-1 không được hòa — backend cũng chặn, nhưng
+        // báo ngay tại form thì admin không phải chờ một vòng gọi API.
+        if (Object.keys(newErrors).length === 0 && match.players.length === 2 && matchStatus === 'completed') {
+            const [p1, p2] = match.players;
+            if (Number(playerScores[p1]) === Number(playerScores[p2])) {
+                newErrors[p2] = 'Trận đấu loại trực tiếp không được kết thúc hòa';
+            }
+        }
+
+        setScoreErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) return;
+
         setSaving(true);
-        setError(null);
 
         const token = localStorage.getItem("jwtToken");
         const config = {
@@ -127,16 +154,15 @@ function MatchEditPage() {
         };
 
         // Chuẩn bị payload data
-        const resultsArray = Object.keys(playerScores).map(playerId => ({
+        const resultsArray = match.players.map(playerId => ({
             player: playerId,
-            score: playerScores[playerId] === '' ? 0 : playerScores[playerId] // Đảm bảo score là số khi gửi đi
+            score: Number(playerScores[playerId])
         }));
 
         const payload = {
             results: resultsArray,
             status: matchStatus,
         };
-        console.log("DEBUG: Saving match data with payload:", payload);
 
         try {
             await axios.put(
@@ -148,8 +174,9 @@ function MatchEditPage() {
             navigate(`/tournament/${tournament_id}/matches`); // Quay lại trang danh sách trận đấu
         } catch (err) {
             console.error("ERROR: Failed to save match result:", err);
-            window.alert(`Có lỗi xảy ra khi lưu kết quả: ${err.response?.data?.message || err.message}`);
-            setError("Lỗi khi lưu kết quả. Vui lòng thử lại.");
+            // KHÔNG gọi setError ở đây: `error` được dùng cho early-return bên dưới
+            // nên lỗi lưu sẽ thay thế toàn bộ form và xoá sạch điểm admin vừa nhập.
+            window.alert(getServerError(err, 'Có lỗi xảy ra khi lưu kết quả').message);
         } finally {
             setSaving(false);
         }
@@ -202,7 +229,11 @@ function MatchEditPage() {
                             value={playerScores[playerId] === undefined ? '' : playerScores[playerId]}
                             onChange={(e) => handleScoreChange(playerId, e.target.value)}
                             min="0" // Đảm bảo điểm không âm
+                            step="1"
                         />
+                        {scoreErrors[playerId] && (
+                            <p className="error-text">{scoreErrors[playerId]}</p>
+                        )}
                     </div>
                 ))}
 

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import styles from './RegisterUser.module.css';
+import { isAlphaNum, isEmail, isPhone, checkRequired, getServerError } from '../utils/validation';
+
+const REQUIRED_FIELDS = ['full_name', 'personal_id', 'email', 'phone', 'name_in_tournament'];
 
 const RegisterUser = ({ tournamentId: propTournamentId, isModal = false, onSuccess }) => {
   // CHỈ CÁC FIELD THEO ĐÚNG SCHEMA REGISTER
@@ -13,6 +16,7 @@ const RegisterUser = ({ tournamentId: propTournamentId, isModal = false, onSucce
     name_in_tournament: ''
   });
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const [tournament, setTournament] = useState(null);
   const navigate = useNavigate();
   const { tournamentId: paramTournamentId } = useParams();
@@ -52,6 +56,31 @@ const RegisterUser = ({ tournamentId: propTournamentId, isModal = false, onSucce
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Trước đây form này hoàn toàn dựa vào thuộc tính `required` của HTML, nên
+    // email/CCCD/số điện thoại sai định dạng vẫn gửi lên và chỉ bị chặn ở backend.
+    const newErrors = checkRequired(formData, REQUIRED_FIELDS);
+
+    if (formData.personal_id && !isAlphaNum(formData.personal_id))
+      newErrors.personal_id = 'CCCD/STTN chỉ được chứa chữ và số';
+    else if (formData.personal_id && (formData.personal_id.length < 5 || formData.personal_id.length > 20))
+      newErrors.personal_id = 'CCCD/STTN phải từ 5 đến 20 ký tự';
+
+    if (formData.email && !isEmail(formData.email))
+      newErrors.email = 'Email không hợp lệ';
+
+    if (formData.phone && !isPhone(formData.phone))
+      newErrors.phone = 'Số điện thoại không hợp lệ';
+
+    if (formData.full_name && formData.full_name.trim().length < 2)
+      newErrors.full_name = 'Họ tên phải từ 2 ký tự';
+
+    if (formData.name_in_tournament && formData.name_in_tournament.trim().length < 2)
+      newErrors.name_in_tournament = 'Tên trong giải đấu phải từ 2 ký tự';
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
     setLoading(true);
     try {
       // Gửi cả tournament ID
@@ -69,7 +98,10 @@ const RegisterUser = ({ tournamentId: propTournamentId, isModal = false, onSucce
         navigate('/tournaments');
       }
     } catch (error) {
-      alert('Đăng ký thất bại: ' + (error.response?.data?.message || error.message));
+      console.error('[ERROR][RegisterUser]:', error);
+      const { message, errors: fieldErrors } = getServerError(error, 'Đăng ký thất bại');
+      setErrors(prev => ({ ...prev, ...fieldErrors }));
+      alert('Đăng ký thất bại: ' + message);
     }
     setLoading(false);
   };
@@ -116,6 +148,7 @@ const RegisterUser = ({ tournamentId: propTournamentId, isModal = false, onSucce
                 placeholder="Nhập họ tên"
                 required
               />
+              {errors.full_name && <p className="error-text">{errors.full_name}</p>}
             </div>
 
             <div className={styles['form-group']}>
@@ -128,6 +161,7 @@ const RegisterUser = ({ tournamentId: propTournamentId, isModal = false, onSucce
                 placeholder="Nhập số CCCD hoặc STTN"
                 required
               />
+              {errors.personal_id && <p className="error-text">{errors.personal_id}</p>}
             </div>
 
             <div className={styles['form-group']}>
@@ -140,6 +174,7 @@ const RegisterUser = ({ tournamentId: propTournamentId, isModal = false, onSucce
                 placeholder="Nhập email"
                 required
               />
+              {errors.email && <p className="error-text">{errors.email}</p>}
             </div>
 
             <div className={styles['form-group']}>
@@ -152,6 +187,7 @@ const RegisterUser = ({ tournamentId: propTournamentId, isModal = false, onSucce
                 placeholder="Nhập số điện thoại"
                 required
               />
+              {errors.phone && <p className="error-text">{errors.phone}</p>}
             </div>
 
             <div className={styles['form-group']}>
@@ -164,6 +200,7 @@ const RegisterUser = ({ tournamentId: propTournamentId, isModal = false, onSucce
                 placeholder="Tên hiển thị trong giải đấu"
                 required
               />
+              {errors.name_in_tournament && <p className="error-text">{errors.name_in_tournament}</p>}
             </div>
 
             <div className={styles['form-actions']}>

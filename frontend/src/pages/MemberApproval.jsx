@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './MemberApproval.enhanced.css';
+import { getServerError } from '../utils/validation';
 
 const MemberApproval = () => {
   const [members, setMembers] = useState([]);
@@ -139,7 +140,10 @@ const MemberApproval = () => {
       fetchMembers();
       alert(`Thành viên đã được ${status === 'approved' ? 'duyệt' : 'từ chối'}!`);
     } catch (error) {
-      alert('Có lỗi xảy ra: ' + error.response?.data?.message);
+      console.error('[ERROR][handleApproval]:', error);
+      // Bản cũ nối thẳng error.response?.data?.message nên khi mất mạng
+      // (không có response) sẽ hiện đúng chữ "Có lỗi xảy ra: undefined".
+      alert(getServerError(error, 'Không thể cập nhật trạng thái thành viên').message);
     }
   };
 

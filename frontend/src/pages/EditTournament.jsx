@@ -2,6 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './CreateTournament.module.css'; // Sử dụng lại CSS từ CreateTournamentPage
+import { isPositiveInt, isUrl, checkRequired, getServerError } from '../utils/validation';
+import { toDateInputValue } from '../utils/date';
+
+// Cùng bộ quy tắc với trang tạo mới — trước đây trang sửa không kiểm tra gì cả,
+// nên mọi ràng buộc ở trang tạo đều có thể lách qua bằng cách vào sửa.
+const REQUIRED_FIELDS = [
+  'title', 'description', 'game', 'format',
+  'participants', 'start_date', 'end_date', 'image'
+];
+
+const MAX_PARTICIPANTS = 1024; // khớp với giới hạn phía backend
 
 function EditTournamentPage() {
   const { id } = useParams(); // Lấy ID của giải đấu từ URL
@@ -18,6 +29,8 @@ function EditTournamentPage() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchTournamentData = async () => {
@@ -33,9 +46,11 @@ function EditTournamentPage() {
           game: tournamentData.game || '',
           format: tournamentData.format || '',
           participants: tournamentData.participants || '',
-          // Định dạng ngày tháng cho input type="date" (YYYY-MM-DD)
-          start_date: tournamentData.start_date ? new Date(tournamentData.start_date) : '',
-          end_date: tournamentData.end_date ? new Date(tournamentData.end_date) : '',
+          // Định dạng ngày tháng cho input type="date" (YYYY-MM-DD).
+          // Bản cũ gán thẳng đối tượng Date vào value nên ô chọn ngày luôn trống
+          // và người dùng vô tình lưu lại giá trị rỗng.
+          start_date: toDateInputValue(tournamentData.start_date),
+          end_date: toDateInputValue(tournamentData.end_date),
           image: tournamentData.image || '',
         });
         setLoading(false);
@@ -55,6 +70,31 @@ function EditTournamentPage() {
 
   const handleSave = async e => {
     e.preventDefault();
+
+    const newErrors = checkRequired(formData, REQUIRED_FIELDS);
+
+    if (formData.participants) {
+      if (!isPositiveInt(formData.participants))
+        newErrors.participants = "Chỉ được nhập số nguyên dương";
+      else if (parseInt(formData.participants) < 2)
+        newErrors.participants = "Số người tham gia ít nhất là 2";
+      else if (parseInt(formData.participants) > MAX_PARTICIPANTS)
+        newErrors.participants = `Số người tham gia tối đa là ${MAX_PARTICIPANTS}`;
+    }
+
+    if (formData.image && !isUrl(formData.image))
+      newErrors.image = "Ảnh phải là đường dẫn http(s) hợp lệ";
+
+    if (formData.start_date && formData.end_date) {
+      if (new Date(formData.end_date) < new Date(formData.start_date)) {
+        newErrors.end_date = "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu";
+      }
+    }
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    setSaving(true);
     try {
       const token = localStorage.getItem('jwtToken');
 
@@ -69,7 +109,11 @@ function EditTournamentPage() {
       navigate(`/tournament/${id}`); // Chuyển hướng về trang chi tiết giải đấu sau khi lưu
     } catch (err) {
       console.error("Lỗi khi cập nhật giải đấu:", err);
-      alert('Cập nhật giải đấu thất bại!');
+      const { message, errors: fieldErrors } = getServerError(err, 'Cập nhật giải đấu thất bại!');
+      setErrors(prev => ({ ...prev, ...fieldErrors }));
+      alert(message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -88,7 +132,7 @@ function EditTournamentPage() {
         navigate('/tournaments'); // Chuyển hướng về trang quản lý giải đấu sau khi xóa
       } catch (err) {
         console.error("Lỗi khi xóa giải đấu:", err);
-        alert('Xóa giải đấu thất bại!');
+        alert(getServerError(err, 'Xóa giải đấu thất bại!').message);
       }
     }
   };
@@ -97,8 +141,8 @@ function EditTournamentPage() {
     navigate(`/tournament/${id}`); // Quay lại trang chi tiết giải đấu
   };
 
-  if (loading) return <div className={styles["create-page"]}>Đang tải...</div>;
-  if (error) return <div className={styles["create-page"]}>{error}</div>;
+  if (loading) return <div className="loading">Đang tải...</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className={styles["create-page"]}>
@@ -113,6 +157,7 @@ function EditTournamentPage() {
               value={formData.title}
               onChange={handleChange}
             />
+            {errors.title && <p className={styles["error-text"]}>{errors.title}</p>}
           </div>
 
           <div>
@@ -123,6 +168,7 @@ function EditTournamentPage() {
               value={formData.description}
               onChange={handleChange}
             />
+            {errors.description && <p className={styles["error-text"]}>{errors.description}</p>}
           </div>
 
           <div>
@@ -133,6 +179,7 @@ function EditTournamentPage() {
               <option value="Street Fighter">Street Fighter</option>
               <option value="Chess">Chess</option>
             </select>
+            {errors.game && <p className={styles["error-text"]}>{errors.game}</p>}
           </div>
 
           <div>
@@ -143,6 +190,7 @@ function EditTournamentPage() {
               <option value="Loại lần 2">Loại lần 2</option>
               <option value="Xếp hạng">Xếp hạng</option>
             </select>
+            {errors.format && <p className={styles["error-text"]}>{errors.format}</p>}
           </div>
 
           <div>
@@ -153,6 +201,7 @@ function EditTournamentPage() {
               value={formData.participants}
               onChange={handleChange}
             />
+            {errors.participants && <p className={styles["error-text"]}>{errors.participants}</p>}
           </div>
 
           <div className={styles["date-grid"]}>
@@ -164,6 +213,7 @@ function EditTournamentPage() {
                 value={formData.start_date}
                 onChange={handleChange}
               />
+            {errors.start_date && <p className={styles["error-text"]}>{errors.start_date}</p>}
             </div>
             <div>
               <label>Thời gian kết thúc:</label>
@@ -173,6 +223,7 @@ function EditTournamentPage() {
                 value={formData.end_date}
                 onChange={handleChange}
               />
+            {errors.end_date && <p className={styles["error-text"]}>{errors.end_date}</p>}
             </div>
           </div>
 
@@ -184,11 +235,12 @@ function EditTournamentPage() {
               value={formData.image}
               onChange={handleChange}
             />
+            {errors.image && <p className={styles["error-text"]}>{errors.image}</p>}
           </div>
 
           <div className={styles["create-buttons"]}>
-            <button type="submit" className={styles["submit-btn"]}>
-              Lưu
+            <button type="submit" className={styles["submit-btn"]} disabled={saving}>
+              {saving ? 'Đang lưu...' : 'Lưu'}
             </button>
             <button type="button" className={styles["cancel-btn"]} onClick={handleCancel}>
               Hủy

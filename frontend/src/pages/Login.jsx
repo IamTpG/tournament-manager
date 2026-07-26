@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Login.module.css'; // Import as object
+import { getServerError } from '../utils/validation';
 
 function LoginPage() {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -26,7 +27,13 @@ function LoginPage() {
       alert('Đăng nhập thành công!');
     } catch (err) {
       console.error(err);
-      setError('Tài khoản hoặc mật khẩu không đúng.');
+      // Chỉ coi là sai thông tin đăng nhập khi server thực sự trả 401. Bản cũ
+      // báo "sai tài khoản/mật khẩu" cho cả lỗi mạng lẫn lỗi 500.
+      if (err.response?.status === 401) {
+        setError('Tài khoản hoặc mật khẩu không đúng.');
+      } else {
+        setError(getServerError(err, 'Không thể đăng nhập. Vui lòng thử lại.').message);
+      }
     }
   };
 
@@ -35,7 +42,7 @@ function LoginPage() {
       <form onSubmit={handleSubmit} className={styles["login-form"]}>
         <h2>Đăng nhập</h2>
         <input
-          type="string"
+          type="text"
           name="username"
           placeholder="Tài khoản"
           value={formData.username}
