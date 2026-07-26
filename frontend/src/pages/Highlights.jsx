@@ -45,7 +45,7 @@ export default function Highlights() {
       <div className={styles["highlight-layout"]}>
         <div className={styles["card-grid-wrapper"]}>
           {isLoggedIn && (
-            <Link to="/admin/highlights/create" className="join">
+            <Link to="/admin/highlights/create" className="create-link">
               + Tạo Highlight
             </Link>
           )}
