@@ -23,8 +23,12 @@ const {
     getMatchesByTournament
 } = require('../controllers/matchControllers');
 
+const { handleValidation } = require('../middleware/handleValidation');
+const tournamentRules = require('../validators/tournamentValidators');
+const { sendMongooseError } = require('../utils/errorResponse');
 
-user_router.get('/tournament/:tournament_id/matches', getMatchesByTournament);
+
+user_router.get('/tournament/:tournament_id/matches', tournamentRules.tournamentIdParam, handleValidation, getMatchesByTournament);
 
 // Highlights management
 user_router.get('/highlight', getAllHighlights);
@@ -35,11 +39,11 @@ user_router.get('/news', getAllNews);
 
 
 // Tournaments management
-user_router.get('/tournament/filter', filterTournaments);
+user_router.get('/tournament/filter', tournamentRules.filterTournaments, handleValidation, filterTournaments);
 user_router.get('/tournament', getTournaments);
-user_router.get('/tournament/:tournament_id', viewTournamentInformation);
-user_router.get('/tournament/:tournament_id/participants/count', countRegistersInTournament);
-user_router.get('/tournament/:tournament_id/players_approved', async (req, res) => {
+user_router.get('/tournament/:tournament_id', tournamentRules.tournamentIdParam, handleValidation, viewTournamentInformation);
+user_router.get('/tournament/:tournament_id/participants/count', tournamentRules.tournamentIdParam, handleValidation, countRegistersInTournament);
+user_router.get('/tournament/:tournament_id/players_approved', tournamentRules.tournamentIdParam, handleValidation, async (req, res) => {
     try {
         const { tournament_id } = req.params;
         const approvedRegistrations = await Register.find({ 
@@ -49,7 +53,7 @@ user_router.get('/tournament/:tournament_id/players_approved', async (req, res) 
         res.json(approvedRegistrations);
     } catch (error) {
         console.error('Error fetching public members for tournament:', error);
-        res.status(500).json({ message: error.message });
+        sendMongooseError(res, error, 'Không thể tải danh sách người chơi');
     }
   });
 

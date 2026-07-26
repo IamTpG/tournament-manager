@@ -1,4 +1,5 @@
 const news_model = require('../model/news');
+const { sendMongooseError } = require('../utils/errorResponse');
 
 /**
  * Function to create a new news
@@ -34,9 +35,7 @@ const createNews = async (req, res) => {
         });
     } catch (error) {
         console.log('[ERROR][createNews]:', error);
-        res.status(500).json({
-            message: 'Failed to create news!'
-        });
+        sendMongooseError(res, error, 'Failed to create news!');
     }
 };
 

@@ -1,4 +1,5 @@
 const highlight_model = require('../model/highlight');
+const { sendMongooseError } = require('../utils/errorResponse');
 
 /**
  * Function to create a new article
@@ -33,9 +34,7 @@ const createHighlight = async (req, res) => {
         });
     } catch (error) {
         console.log('[ERROR][createHighlight]:', error);
-        res.status(500).json({
-            message: 'Failed to create highlight!'
-        });
+        sendMongooseError(res, error, 'Failed to create highlight!');
     }
 };
 

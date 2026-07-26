@@ -4,6 +4,9 @@ const {
     login
 } = require('../controllers/authControllers');
 
-router.post('/login', login);
+const { handleValidation } = require('../middleware/handleValidation');
+const authRules = require('../validators/authValidators');
+
+router.post('/login', authRules.login, handleValidation, login);
 
 module.exports = router;

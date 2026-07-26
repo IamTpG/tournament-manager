@@ -1,5 +1,6 @@
 const tournament_model = require('../model/tournament');
 const register_model = require('../model/register.js');
+const { sendMongooseError } = require('../utils/errorResponse');
 
 /**
  * Function to create a tournament
@@ -58,9 +59,7 @@ const createTournament = async (req, res) => {
 
     } catch (error) {
         console.log('[ERROR][createTournament]: ', error);
-        res.status(500).json({
-            message: 'Failed to create tournament'
-        });
+        sendMongooseError(res, error, 'Failed to create tournament');
     }
 };
 
@@ -91,8 +90,13 @@ const getTournaments = async (req, res) => {
 const viewTournamentInformation = async (req, res) => {
     const {tournament_id} = req.params
     try {
-        const tournament = await tournament_model.findOne({id: tournament_id}, {_id: 0, __v: 0, id:0});
-    
+        const tournament = await tournament_model.findOne({id: tournament_id}, {_id: 0, __v: 0});
+
+        // Thiếu kiểm tra null ở đây khiến id không tồn tại trả về 500 thay vì 404.
+        if (!tournament) {
+            return res.status(404).json({ message: 'Tournament not found' });
+        }
+
         const formatted_tournaments = {
             id: tournament.id,
             game: tournament.game,
@@ -148,9 +152,7 @@ const filterTournaments = async (req, res) => {
 
     } catch (error) {
         console.log('[ERROR][filterTournaments]: ', error);
-        res.status(500).json({
-            message: 'Failed to fetch tournaments!'
-        });
+        sendMongooseError(res, error, 'Failed to fetch tournaments!');
     }
 };
 

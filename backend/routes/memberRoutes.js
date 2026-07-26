@@ -3,6 +3,9 @@ const router = express.Router();
 
 const Register = require('../model/register');
 const { verifyToken } = require('../middleware/verifyToken');
+const { handleValidation } = require('../middleware/handleValidation');
+const registerRules = require('../validators/registerValidators');
+const { sendMongooseError } = require('../utils/errorResponse');
 
 // GET /api/admin/members - Lấy danh sách thành viên
 router.get('/', verifyToken, async (req, res) => {
@@ -11,24 +14,24 @@ router.get('/', verifyToken, async (req, res) => {
     res.json(members);
   } catch (error) {
     console.error('Error fetching members:', error); // <--- this will show exact cause
-    res.status(500).json({ message: error.message });
+    sendMongooseError(res, error, 'Không thể xử lý yêu cầu thành viên');
   }
 });
 
 // PUT /api/admin/members/:id/approve - Duyệt/từ chối thành viên
-router.put('/:id/approve', verifyToken, async (req, res) => {
+router.put('/:id/approve', verifyToken, registerRules.approveMember, handleValidation, async (req, res) => {
   try {
     const { status } = req.body;
     await Register.findByIdAndUpdate(req.params.id, { status });
     res.json({ message: 'Cập nhật trạng thái thành công!' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    sendMongooseError(res, error, 'Không thể xử lý yêu cầu thành viên');
   }
 });
 
 
 // GET /api/admin/members/tournament/:tournament_id - Lấy danh sách thành viên của một giải đấu
-router.get('/tournament/:tournament_id', verifyToken, async (req, res) => {
+router.get('/tournament/:tournament_id', verifyToken, registerRules.membersByTournament, handleValidation, async (req, res) => {
   try {
       const { tournament_id } = req.params;
       const approvedRegistrations = await Register.find({ 
@@ -38,14 +41,14 @@ router.get('/tournament/:tournament_id', verifyToken, async (req, res) => {
       res.json(approvedRegistrations);
   } catch (error) {
       console.error('Error fetching approved members for tournament:', error);
-      res.status(500).json({ message: error.message });
+      sendMongooseError(res, error, 'Không thể xử lý yêu cầu thành viên');
   }
 });
 
 
 // GET /api/admin/members/tournament/:tournament_id/public - Lấy danh sách thành viên công khai
 // Endpoint mới này sẽ không sử dụng middleware verifyToken
-router.get('/tournament/:tournament_id/public', async (req, res) => {
+router.get('/tournament/:tournament_id/public', registerRules.membersByTournament, handleValidation, async (req, res) => {
   try {
       const { tournament_id } = req.params;
       const approvedRegistrations = await Register.find({ 
@@ -55,7 +58,7 @@ router.get('/tournament/:tournament_id/public', async (req, res) => {
       res.json(approvedRegistrations);
   } catch (error) {
       console.error('Error fetching public members for tournament:', error);
-      res.status(500).json({ message: error.message });
+      sendMongooseError(res, error, 'Không thể xử lý yêu cầu thành viên');
   }
 });
 
