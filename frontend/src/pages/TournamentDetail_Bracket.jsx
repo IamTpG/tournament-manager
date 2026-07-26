@@ -252,6 +252,20 @@ function TournamentDetailBracket() {
             match.players.length > 0 ? Math.max(max, match.round) : max, 0
         );
 
+        // Chung kết tổng có thể gồm 2 ván: ván 1 và ván reset (chỉ tồn tại khi vô địch
+        // Nhánh Thua thắng ván 1). Quy ước từ backend: players[0] = vô địch Nhánh Thắng,
+        // players[1] = vô địch Nhánh Thua.
+        const allGrandFinalsMatches = fetchedMatches
+            .filter(m => m.bracket_type === 'grand_finals')
+            .sort((a, b) => a.round - b.round);
+        const grandFinalsResetMatch = allGrandFinalsMatches[1];
+
+        // Người thắng của một match đã hoàn thành (null nếu chưa đủ dữ liệu).
+        const getMatchWinnerId = (match) => {
+            if (!match || match.status !== 'completed' || match.players.length !== 2 || match.results.length !== 2) return null;
+            return match.results.reduce((prev, current) => (prev.score > current.score ? prev : current)).player;
+        };
+
         // Có thể tiến độ nếu vòng hiện tại (có người chơi thật) đã hoàn thành VÀ không phải là vòng cuối cùng của bracket
         let canAdvance = false;
         if (highestPopulatedRoundNumber > 0) {
@@ -274,8 +288,14 @@ function TournamentDetailBracket() {
                 // Nếu vòng hiện tại đã hoàn thành và chưa phải chung kết, thì có thể advance
                 canAdvance = true;
             } else if (tournament.format === 'Loại lần 2' && isGrandFinalsRound && matchesInHighestPopulatedRound.grand_finals.every(m => m.status === 'completed')) {
-                // Grand Finals đã hoàn thành, giải đấu kết thúc.
-                canAdvance = false;
+                // Chung kết tổng đã đấu xong. Nếu vô địch Nhánh Thua (players[1]) thắng ván 1
+                // và chưa có ván reset, cả hai cùng 1 thua ⇒ vẫn cần bấm tiến độ để tạo ván
+                // quyết định. Mọi trường hợp còn lại là giải đấu đã thực sự kết thúc.
+                const topGrandFinalsMatch = matchesInHighestPopulatedRound.grand_finals[0];
+                const topGrandFinalsWinnerId = getMatchWinnerId(topGrandFinalsMatch);
+                canAdvance = !grandFinalsResetMatch &&
+                             topGrandFinalsWinnerId !== null &&
+                             topGrandFinalsWinnerId === topGrandFinalsMatch.players[1];
             }
         }
 
@@ -292,9 +312,19 @@ function TournamentDetailBracket() {
 
         if (finalMatches.length > 0) {
             const finalMatch = finalMatches[0];
-            if (finalMatch.status === 'completed' && finalMatch.players.length === 2 && finalMatch.results.length === 2) {
+            const finalMatchWinnerId = getMatchWinnerId(finalMatch);
+
+            // Ván 1 chung kết tổng mà vô địch Nhánh Thua (players[1]) thắng thì CHƯA kết
+            // thúc: cả hai cùng 1 thua, phải đấu thêm ván reset để phân định.
+            const isAwaitingBracketReset = tournament.format === 'Loại lần 2' &&
+                                           finalMatch.bracket_type === 'grand_finals' &&
+                                           !grandFinalsResetMatch &&
+                                           finalMatchWinnerId !== null &&
+                                           finalMatchWinnerId === finalMatch.players[1];
+
+            if (finalMatchWinnerId !== null && !isAwaitingBracketReset) {
                 isTournamentCompleted = true;
-                winnerOfTournament = finalMatch.results.reduce((prev, current) => (prev.score > current.score ? prev : current)).player;
+                winnerOfTournament = finalMatchWinnerId;
             }
         }
 
