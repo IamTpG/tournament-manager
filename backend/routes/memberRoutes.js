@@ -7,6 +7,13 @@ const { handleValidation } = require('../middleware/handleValidation');
 const registerRules = require('../validators/registerValidators');
 const { sendMongooseError } = require('../utils/errorResponse');
 
+/**
+ * Danh sách người chơi chỉ cần id và tên thi đấu để map ID sang tên trên bracket.
+ * Trước đây các endpoint này trả về NGUYÊN document đăng ký — gồm cả personal_id
+ * (CCCD), email và số điện thoại — trong đó có một endpoint không hề yêu cầu đăng nhập.
+ */
+const PLAYER_LIST_FIELDS = { _id: 0, id: 1, name_in_tournament: 1 };
+
 // GET /api/admin/members - Lấy danh sách thành viên
 router.get('/', verifyToken, async (req, res) => {
   try {
@@ -22,9 +29,23 @@ router.get('/', verifyToken, async (req, res) => {
 router.put('/:id/approve', verifyToken, registerRules.approveMember, handleValidation, async (req, res) => {
   try {
     const { status } = req.body;
-    await Register.findByIdAndUpdate(req.params.id, { status });
+
+    // runValidators: mặc định findByIdAndUpdate KHÔNG chạy validator của schema,
+    // nên enum status bị bỏ qua hoàn toàn và giá trị rác vẫn được ghi vào DB.
+    const updated = await Register.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    // Trước đây không kiểm tra kết quả: id không tồn tại vẫn trả 200 "thành công".
+    if (!updated) {
+      return res.status(404).json({ message: 'Không tìm thấy thành viên' });
+    }
+
     res.json({ message: 'Cập nhật trạng thái thành công!' });
   } catch (error) {
+    console.error('[ERROR][approveMember]:', error);
     sendMongooseError(res, error, 'Không thể xử lý yêu cầu thành viên');
   }
 });
@@ -34,10 +55,10 @@ router.put('/:id/approve', verifyToken, registerRules.approveMember, handleValid
 router.get('/tournament/:tournament_id', verifyToken, registerRules.membersByTournament, handleValidation, async (req, res) => {
   try {
       const { tournament_id } = req.params;
-      const approvedRegistrations = await Register.find({ 
-          tournament_id: tournament_id, 
-          status: 'approved' 
-      });
+      const approvedRegistrations = await Register.find(
+          { tournament_id: tournament_id, status: 'approved' },
+          PLAYER_LIST_FIELDS
+      );
       res.json(approvedRegistrations);
   } catch (error) {
       console.error('Error fetching approved members for tournament:', error);
@@ -51,10 +72,10 @@ router.get('/tournament/:tournament_id', verifyToken, registerRules.membersByTou
 router.get('/tournament/:tournament_id/public', registerRules.membersByTournament, handleValidation, async (req, res) => {
   try {
       const { tournament_id } = req.params;
-      const approvedRegistrations = await Register.find({ 
-          tournament_id: tournament_id, 
-          status: 'approved' 
-      });
+      const approvedRegistrations = await Register.find(
+          { tournament_id: tournament_id, status: 'approved' },
+          PLAYER_LIST_FIELDS
+      );
       res.json(approvedRegistrations);
   } catch (error) {
       console.error('Error fetching public members for tournament:', error);

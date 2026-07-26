@@ -13,11 +13,22 @@ const login = async (req, res) => {
     const { username, password } = req.body;
 
     try {
+        // Chốt chặn thứ hai sau validator: username phải là chuỗi. Nếu để nguyên
+        // giá trị từ body, một object như {"$regex": "^a"} sẽ trở thành toán tử
+        // truy vấn MongoDB và cho phép dò tên tài khoản.
+        if (typeof username !== 'string' || typeof password !== 'string') {
+            return res.status(400).json({ message: 'Tên đăng nhập hoặc mật khẩu không hợp lệ' });
+        }
+
         const admin_account = await account.findOne({username});
-        if (!admin_account) return res.status(404).json({message: 'User not found'});
+
+        // Cùng một thông báo cho "không có tài khoản" và "sai mật khẩu": trước đây
+        // 404 vs 401 là một oracle để dò xem tên đăng nhập nào có thật.
+        const INVALID_CREDENTIALS = 'Tài khoản hoặc mật khẩu không đúng';
+        if (!admin_account) return res.status(401).json({message: INVALID_CREDENTIALS});
 
         const is_match = await bcrypt.compare(password, admin_account.password);
-        if (!is_match) return res.status(401).json({message: 'Incorrect password'});
+        if (!is_match) return res.status(401).json({message: INVALID_CREDENTIALS});
 
         const token = jwt.sign(
             { userId: admin_account._id, role: admin_account.role },

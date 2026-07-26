@@ -46,10 +46,12 @@ user_router.get('/tournament/:tournament_id/participants/count', tournamentRules
 user_router.get('/tournament/:tournament_id/players_approved', tournamentRules.tournamentIdParam, handleValidation, async (req, res) => {
     try {
         const { tournament_id } = req.params;
-        const approvedRegistrations = await Register.find({ 
-            tournament_id: tournament_id, 
-            status: 'approved' 
-        });
+        // Chỉ trả id + tên thi đấu. Trước đây endpoint công khai này trả nguyên
+        // document đăng ký, lộ CCCD/email/số điện thoại của mọi người chơi.
+        const approvedRegistrations = await Register.find(
+            { tournament_id: tournament_id, status: 'approved' },
+            { _id: 0, id: 1, name_in_tournament: 1 }
+        );
         res.json(approvedRegistrations);
     } catch (error) {
         console.error('Error fetching public members for tournament:', error);
