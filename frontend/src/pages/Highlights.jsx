@@ -3,6 +3,7 @@ import HighlightCard from "../components/HighlightCard";
 import styles from "./Highlights.module.css";
 
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 export default function Highlights() {
@@ -43,6 +44,11 @@ export default function Highlights() {
     <>
       <div className={styles["highlight-layout"]}>
         <div className={styles["card-grid-wrapper"]}>
+          {isLoggedIn && (
+            <Link to="/admin/highlights/create" className="join">
+              + Tạo Highlight
+            </Link>
+          )}
           <div className={styles["card-grid"]}>
           {highlights.map((item, index) => (
             <HighlightCard key={index} {...item} />

@@ -3,6 +3,7 @@ import NewsCard from "../components/NewsCard";
 import styles from "./News.module.css";
 
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 export default function News() {
@@ -43,6 +44,11 @@ export default function News() {
     <>
       <div className={styles["news-layout"]}>
         <div className={styles["card-grid-wrapper"]}>
+          {isLoggedIn && (
+            <Link to="/admin/news/create" className="join">
+              + Tạo tin tức
+            </Link>
+          )}
           <div className={styles["card-grid"]}>
           {news.map((item, index) => (
             <NewsCard key={index} {...item} />

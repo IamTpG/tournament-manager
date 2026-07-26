@@ -7,6 +7,8 @@ import Highlights               from "./pages/Highlights";
 
 import Tournaments              from "./pages/Tournaments";
 import CreateTournament         from "./pages/CreateTournament";
+import CreateNews               from "./pages/CreateNews";
+import CreateHighlight          from "./pages/CreateHighlight";
 import TournamentDetail_Matches from './pages/TournamentDetail_Matches';
 import TournamentDetailBracket  from "./pages/TournamentDetail_Bracket";
 import MatchEditPage            from "./pages/EditMatch";
@@ -85,6 +87,22 @@ export default function App() {
             element={
               <AdminRoute>
                 <CreateTournament />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/news/create"
+            element={
+              <AdminRoute>
+                <CreateNews />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/highlights/create"
+            element={
+              <AdminRoute>
+                <CreateHighlight />
               </AdminRoute>
             }
           />
