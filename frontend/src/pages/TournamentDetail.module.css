@@ -1,0 +1,628 @@
+ .card {
+  background-color: black;
+}
+
+.card-img {
+  object-fit: contain;
+}
+
+.banner {
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  margin-top: 10px;
+  background-color: black;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 20%;
+}
+
+.info-section {
+  text-align: center;
+  padding: 10px;
+  background-color: #000000; 
+  border-radius: 8px;
+  margin-top: 5px;
+  box-shadow: 0 2px 2px rgba(0,0,0,0.05);
+}
+
+.info-section h1 {
+  font-size: 2.5em;
+  font-weight: bold;
+  color: #ffffff; 
+  margin-bottom: 10px;
+}
+
+.info-section p {
+  font-size: 1.1em;
+  color: #e8e8e8;
+  margin-bottom: 2px;
+}
+
+.info-section .join-btn {
+  background-color: #000000;
+  color: rgb(255, 255, 255);
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-top: 15px;
+  transition: background-color 0.3s ease;
+}
+
+.info-section .join-btn:hover {
+  background-color: #0056b3;
+}
+
+.cardGridWrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 20px;
+  justify-items: center;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 2em;
+  color: #333;
+}
+
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  background-color: black;
+  padding: 15px 20px;
+  border-radius: 15px;
+  margin: 30px auto;
+  max-width: fit-content;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.tabs button {
+  background-color: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 600;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  white-space: nowrap;
+}
+
+.tabs button:hover {
+  background-color: #444;
+  color: white;
+  border-color: #666;
+}
+
+.tabs .activeTab {
+  background-color: #444;
+  border-color: #666;
+  color: white;
+}
+/*
+.matchList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 0;
+  align-items: center;
+}
+
+.matchCard {
+  background-color: #222;
+  color: white;
+  border-radius: 12px;
+  padding: 15px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  width: 800px;
+  cursor: pointer;
+  max-width: 90%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease-in-out;
+}
+
+.matchCard:hover {
+  transform: translateY(-3px);
+}
+
+.matchInfo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.matchInfo span:first-child,
+.matchInfo span:nth-child(2),
+.matchInfo span:nth-child(3) {
+  white-space: nowrap;
+}
+
+.matchTime {
+  font-size: 0.9em;
+  color: #bbb;
+  margin-top: 5px;
+  display: block;
+}
+
+.updateBtn {
+  background-color: #007bff;
+  color: white;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+  align-self: flex-end;
+}
+
+.updateBtn:hover {
+  background-color: #0056b3;
+} */
+
+
+
+/* Các style cho container tổng của danh sách trận đấu */
+.matchListContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Khoảng cách giữa các nhóm ngày */
+  padding: 20px;
+  width: 100%;
+  max-width: 900px; /* Giới hạn chiều rộng để dễ đọc */
+  margin: 20px auto; /* Căn giữa và có khoảng cách trên dưới */
+  background-color: #f8f9fa; /* Nền nhẹ cho toàn bộ danh sách */
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+/* Các style cho từng nhóm trận đấu theo ngày */
+.dateGroup {
+  background-color: #ffffff; /* Nền trắng cho mỗi nhóm ngày */
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.dateHeader {
+  font-size: 1.5em;
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 2px solid #007bff; /* Đường gạch chân màu xanh */
+  padding-bottom: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Container cho các thẻ trận đấu trong một nhóm ngày */
+.matchGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Khoảng cách giữa các thẻ match */
+}
+
+/* Style cho từng thẻ trận đấu */
+.matchCard {
+  display: flex;
+  flex-direction: column; /* Xếp thông tin và nút cập nhật dọc */
+  background-color: #fff;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  position: relative; /* Để định vị các badge và nút */
+}
+
+.matchCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.matchPlayersAndScores {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1; /* Đảm bảo nó chiếm đủ không gian */
+  margin-bottom: 10px; /* Khoảng cách với nút Cập nhật */
+}
+
+.playerEntry {
+  display: flex;
+  justify-content: space-between; /* Đẩy tên và điểm sang hai bên */
+  align-items: center;
+  padding: 5px 0;
+  font-size: 1.1em;
+  color: #555;
+  border-bottom: 1px dashed #eee; /* Đường gạch ngang giữa các player */
+}
+
+.playerEntry:last-of-type {
+  border-bottom: none; /* Bỏ border cho player cuối cùng */
+}
+
+.playerName {
+  font-weight: 600;
+  color: #2c3e50;
+  flex: 1; /* Cho phép tên chiếm không gian */
+}
+
+.playerScore {
+  font-weight: 700;
+  color: #007bff; /* Màu xanh nổi bật cho điểm */
+  margin-left: 15px; /* Khoảng cách giữa tên và điểm */
+  white-space: nowrap; /* Ngăn điểm xuống dòng */
+}
+
+/* Container cho thời gian của match */
+.matchTimeContainer {
+  margin-top: 10px;
+  text-align: right; /* Căn phải thời gian */
+  font-size: 0.9em;
+  color: #666;
+  font-style: italic;
+  padding-top: 5px;
+  border-top: 1px solid #eee;
+}
+
+.matchTime {
+  font-weight: bold;
+  color: #333;
+}
+
+
+/* Style cho các badge trạng thái */
+.matchStatusBadge {
+  padding: 6px 12px;
+  border-radius: 20px; /* Bo tròn hơn */
+  font-size: 0.85em;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 10px; /* Khoảng cách với phần trên */
+  align-self: flex-end; /* Đẩy về bên phải của matchCard */
+  width: fit-content; /* Giữ kích thước theo nội dung */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.matchStatusBadge.completed {
+  background-color: #d4edda; /* Light green */
+  color: #155724; /* Darker green */
+}
+
+.matchStatusBadge.pending {
+  background-color: #fff3cd; /* Light yellow */
+  color: #856404; /* Darker yellow */
+}
+
+.matchStatusBadge.bye {
+  background-color: #e2e3e5; /* Light grey */
+  color: #495057; /* Darker grey */
+}
+
+/* Style cho nút cập nhật */
+.updateBtn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  align-self: flex-end; /* Đẩy nút về bên phải */
+  margin-top: 15px; /* Khoảng cách từ nội dung match */
+}
+
+.updateBtn:hover {
+  background-color: #2980b9;
+  transform: translateY(-1px);
+}
+
+.updateBtn:active {
+  transform: translateY(0);
+}
+
+/* Thêm cho các message chung */
+.noScheduleMessage {
+  text-align: center;
+  padding: 40px;
+  background-color: #e9ecef;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin: 20px auto;
+  max-width: 600px;
+  color: #555;
+}
+
+.noScheduleMessage h2 {
+  color: #333;
+  margin-bottom: 15px;
+}
+
+/* 
+.pageWrapper {
+  background-color: #121212;
+  min-height: 100vh;
+  padding-bottom: 50px;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.matchCardEdit {
+  background-color: #1a1a1a;
+  color: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 500px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.matchInfoEdit {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.playerAvatar {
+  background-color: #007bff;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.8em;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+}
+
+.matchTimeEdit {
+  display: block;
+  font-size: 1em;
+  color: #bbb;
+  margin-top: 5px;
+}
+
+.editFormContainer {
+  background-color: #1a1a1a;
+  color: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin: 20px auto;
+  max-width: 500px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.editFormContainer h2 {
+  text-align: center;
+  color: white;
+  margin-bottom: 25px;
+  font-size: 2em;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formGroup label {
+  font-size: 1em;
+  color: #ccc;
+  margin-bottom: 5px;
+}
+
+.inputField,
+.selectField,
+.textareaField {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background-color: #333;
+  color: white;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+.inputField::placeholder,
+.textareaField::placeholder {
+  color: #888;
+}
+
+.inputField:focus,
+.selectField:focus,
+.textareaField:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+}
+
+.selectField {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 15px center;
+  background-size: 18px;
+}
+
+.textareaField {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.saveButton {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  display: block;
+  width: 100%;
+  margin-top: 25px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.saveButton:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+} */
+
+
+
+/* Các style cho phần tiêu đề */
+.centeredTitle {
+  text-align: center;
+  color: #2c3e50;
+  font-size: 2em;
+  margin-bottom: 10px;
+}
+
+.centeredSubTitle {
+  text-align: center;
+  color: #7f8c8d;
+  font-size: 1.1em;
+  margin-bottom: 5px;
+}
+
+/* Form container */
+.matchEditForm {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  padding: 30px;
+  margin: 30px auto;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #34495e;
+  font-size: 1em;
+}
+
+.formControl {
+  padding: 12px 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box; /* Đảm bảo padding không làm tăng chiều rộng */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.formControl:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+.formControl[type="number"] {
+  -moz-appearance: textfield; /* Loại bỏ mũi tên xoay trên Firefox */
+}
+.formControl::-webkit-outer-spin-button,
+.formControl::-webkit-inner-spin-button {
+  -webkit-appearance: none; /* Loại bỏ mũi tên xoay trên Chrome/Safari */
+  margin: 0;
+}
+
+
+/* Buttons */
+.saveButton, .cancelButton {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.saveButton {
+  background-color: #28a745; /* Màu xanh lá cây */
+  color: white;
+}
+
+.saveButton:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.saveButton:active {
+  transform: translateY(0);
+}
+
+.saveButton:disabled {
+  background-color: #90ee90;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  background-color: #6c757d; /* Màu xám */
+  color: white;
+}
+
+.cancelButton:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+.cancelButton:active {
+  transform: translateY(0);
+}

@@ -1,0 +1,157 @@
+header {
+  background: #222;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: x-large;
+  padding: 15px 30px;
+}
+
+.logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+nav a {
+  margin: 0 15px;
+  color: #ccc;
+  text-decoration: none;
+}
+
+nav a:hover {
+  color: #fff;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+}
+
+.search input {
+  padding: 5px 10px;
+  border-radius: 10px;
+  border: none;
+}
+
+.user-icon {
+  margin-left: 15px;
+  font-size: 20px;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 50%, #1a1a2e 100%);
+  color: #fff;
+}
+
+footer {
+  background-color: #2a2a3d;
+  padding: 20px 40px;
+  color: white;
+  display: flex;
+  justify-content: center;
+}
+
+.footer-container {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.footer-logo {
+  font-size: 40px;
+}
+
+.footer-info p {
+  margin: 0;
+  line-height: 1.5;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+/* 
+.join {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.join:hover {
+  background: #0056b3;
+}
+
+.joined {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: default;
+  font-size: 0.9rem;
+} */
+
+/* ---------------------------------------------------------------
+   Lớp dùng chung cho form và trạng thái tải/lỗi.
+   Trước đây mỗi trang tự đặt một kiểu khác nhau (style inline, class
+   riêng của từng module, hoặc class không hề có rule nào), nên thông
+   báo lỗi hiển thị không đồng nhất — có chỗ còn không hiện gì.
+   --------------------------------------------------------------- */
+
+/* Lỗi ngay dưới ô nhập. Đặt margin tường minh vì thẻ <p> có margin mặc định
+   của trình duyệt (1em trên/dưới) sẽ đẩy thông báo lệch khỏi ô nhập. */
+.error-text {
+  color: #ff6b6b;
+  font-size: 13px;
+  margin: 4px 0 0;
+}
+
+/* Thông báo lỗi cấp trang */
+.error {
+  color: #ff4d4d;
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 1rem;
+}
+
+/* Trạng thái đang tải cấp trang */
+.loading {
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+/* Nút "tạo mới" cho admin trên các trang danh sách (Tin tức, Highlight).
+   Tách riêng khỏi .join vì .join chỉ cấp màu nền — phần padding/bo góc của
+   nó đến từ `.card-footer button`, nên đặt lên thẻ <a> sẽ ra một link gạch
+   chân dính nền xanh thay vì một cái nút. */
+.create-link {
+  display: inline-block;
+  /* Không cho container flex/grid kéo giãn nút ra hết chiều rộng/cao */
+  align-self: flex-start;
+  justify-self: start;
+  width: fit-content;
+  margin-bottom: 1rem;
+  padding: 0.45rem 0.9rem;
+  background: linear-gradient(135deg, #4CAF50, #2e7d32);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.create-link:hover {
+  background: linear-gradient(135deg, #45a049, #1b5e20);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  transform: translateY(-2px);
+}

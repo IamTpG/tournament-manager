@@ -1,0 +1,106 @@
+.tournament-layout {
+  display: flex;
+  gap: 40px;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-grid-wrapper {
+  display: flex;
+  justify-content: left;
+  padding: 1rem;
+  margin-top: 40px;
+  margin-left: 70px;
+  width: 70%;
+}
+
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 2rem;
+  align-items: flex-start; /* prevents height mismatch shifting */
+}
+
+/* Modern Card Style */
+.card-grid > * {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+
+  transition: all 0.3s ease;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.card-grid > *:hover {
+  transform: scale(1.03);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* SIDEBAR */
+.tournament-sidebar {
+  margin-top: 20px;
+  width: 260px;
+  color: white;
+  background: #1b1b1b;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+}
+
+.tournament-sidebar h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #4facfe;
+  letter-spacing: 0.5px;
+}
+
+.tournament-sidebar button {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #2c2c2c, #1e1e1e);
+  color: #4facfe;
+  border-radius: 8px;
+  border: 1px solid #444;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.tournament-sidebar button:hover {
+  background: linear-gradient(135deg, #5e4dbf, #3b2a7d);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(94, 77, 191, 0.4);
+}
+
+/* ICON GRID */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.icon-grid img {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background-color: #2a2a2a;
+  padding: 6px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.icon-grid img:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}

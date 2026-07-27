@@ -1,0 +1,51 @@
+.card {
+  width: 310px;
+  height: 360px;
+  margin: 0.2rem;
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeInCard 0.4s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+.card-img {
+  height: 60%;
+  width: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.card-content {
+  padding: 0 1rem;
+  color: white;
+  font-size: 14px;
+}
+
+.card-content h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 8px 0;
+  max-height: 24px;
+  overflow: hidden;
+}
+
+.card-content p {
+  color: #ccc;
+  font-size: 0.85rem;
+  max-height: 75px;
+  overflow: hidden;
+}
+
+@keyframes fadeInCard {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
