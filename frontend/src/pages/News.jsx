@@ -45,7 +45,7 @@ export default function News() {
       <div className={styles["news-layout"]}>
         <div className={styles["card-grid-wrapper"]}>
           {isLoggedIn && (
-            <Link to="/admin/news/create" className="join">
+            <Link to="/admin/news/create" className="create-link">
               + Tạo tin tức
             </Link>
           )}

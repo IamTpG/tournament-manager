@@ -97,3 +97,56 @@ footer {
   cursor: default;
   font-size: 0.9rem;
 } */
+
+/* ---------------------------------------------------------------
+   Lớp dùng chung cho form và trạng thái tải/lỗi.
+   Trước đây mỗi trang tự đặt một kiểu khác nhau (style inline, class
+   riêng của từng module, hoặc class không hề có rule nào), nên thông
+   báo lỗi hiển thị không đồng nhất — có chỗ còn không hiện gì.
+   --------------------------------------------------------------- */
+
+/* Lỗi ngay dưới ô nhập */
+.error-text {
+  color: #ff6b6b;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* Thông báo lỗi cấp trang */
+.error {
+  color: #ff4d4d;
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 1rem;
+}
+
+/* Trạng thái đang tải cấp trang */
+.loading {
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+/* Nút "tạo mới" cho admin trên các trang danh sách (Tin tức, Highlight).
+   Tách riêng khỏi .join vì .join chỉ cấp màu nền — phần padding/bo góc của
+   nó đến từ `.card-footer button`, nên đặt lên thẻ <a> sẽ ra một link gạch
+   chân dính nền xanh thay vì một cái nút. */
+.create-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.45rem 0.9rem;
+  background: linear-gradient(135deg, #4CAF50, #2e7d32);
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.create-link:hover {
+  background: linear-gradient(135deg, #45a049, #1b5e20);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+  transform: translateY(-2px);
+}

@@ -12,7 +12,9 @@ const memberRoutes = require('./routes/memberRoutes')
 const connectDatabaseFunction = require('./config/database');
 
 const app = express();
-app.use(express.json()); // Allow web to understand JSON data
+// Giới hạn kích thước body được khai báo tường minh (mặc định của body-parser
+// cũng là 100kb, nhưng ghi rõ để tránh phụ thuộc vào mặc định của thư viện).
+app.use(express.json({ limit: '100kb' })); // Allow web to understand JSON data
 
 app.use(cors({
     origin: 'http://localhost:5173',

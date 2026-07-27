@@ -1,4 +1,5 @@
 const highlight_model = require('../model/highlight');
+const { sendMongooseError } = require('../utils/errorResponse');
 
 /**
  * Function to create a new article
@@ -14,17 +15,15 @@ const createHighlight = async (req, res) => {
     const {  URL, image, title, description } = req.body; 
 
     try {
-        const new_highlight = new highlight_model({
-            URL,
-            image,
-            title,
-            description
-        });
+        const highlight_data = { URL, image, title, description };
 
-        // Remove undefined/null fields to let default values work
-        Object.keys(new_highlight).forEach(
-            key => (new_highlight[key] == null) && delete new_highlight[key]
+        // Bỏ trường null/undefined trên object THƯỜNG trước khi khởi tạo model
+        // (bản cũ chạy trên Mongoose document nên không xoá được gì).
+        Object.keys(highlight_data).forEach(
+            key => (highlight_data[key] == null) && delete highlight_data[key]
         );
+
+        const new_highlight = new highlight_model(highlight_data);
 
         await new_highlight.save();
         console.log('Highlight saved!');
@@ -35,9 +34,7 @@ const createHighlight = async (req, res) => {
         });
     } catch (error) {
         console.log('[ERROR][createHighlight]:', error);
-        res.status(500).json({
-            message: 'Failed to create highlight!'
-        });
+        sendMongooseError(res, error, 'Failed to create highlight!');
     }
 };
 

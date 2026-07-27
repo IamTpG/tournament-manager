@@ -1,5 +1,6 @@
 const tournament_model = require('../model/tournament');
 const register_model = require('../model/register.js');
+const { sendMongooseError } = require('../utils/errorResponse');
 
 /**
  * Function to create a tournament
@@ -58,9 +59,7 @@ const createTournament = async (req, res) => {
 
     } catch (error) {
         console.log('[ERROR][createTournament]: ', error);
-        res.status(500).json({
-            message: 'Failed to create tournament'
-        });
+        sendMongooseError(res, error, 'Failed to create tournament');
     }
 };
 
@@ -91,8 +90,13 @@ const getTournaments = async (req, res) => {
 const viewTournamentInformation = async (req, res) => {
     const {tournament_id} = req.params
     try {
-        const tournament = await tournament_model.findOne({id: tournament_id}, {_id: 0, __v: 0, id:0});
-    
+        const tournament = await tournament_model.findOne({id: tournament_id}, {_id: 0, __v: 0});
+
+        // Thiếu kiểm tra null ở đây khiến id không tồn tại trả về 500 thay vì 404.
+        if (!tournament) {
+            return res.status(404).json({ message: 'Tournament not found' });
+        }
+
         const formatted_tournaments = {
             id: tournament.id,
             game: tournament.game,
@@ -148,33 +152,64 @@ const filterTournaments = async (req, res) => {
 
     } catch (error) {
         console.log('[ERROR][filterTournaments]: ', error);
-        res.status(500).json({
-            message: 'Failed to fetch tournaments!'
-        });
+        sendMongooseError(res, error, 'Failed to fetch tournaments!');
     }
 };
 
+// Các trường được phép sửa. `id` cố tình KHÔNG nằm ở đây: nó là khoá join sang
+// match.tournament_ID và register.tournament_id, đổi nó sẽ làm mồ côi toàn bộ
+// trận đấu và đăng ký của giải.
+const UPDATABLE_TOURNAMENT_FIELDS = [
+    'image', 'game', 'title', 'format', 'description',
+    'participants', 'start_date', 'end_date'
+];
+
 const updateTournament = async (req, res) => {
     const {tournament_id} = req.params;
-    const updated_data = req.body;
-    
-    // console.log('[DEBUG][updateTournament]:', updated_data);
+
+    // Chỉ nhận các trường trong danh sách cho phép, thay vì $set nguyên req.body.
+    const updated_data = {};
+    for (const field of UPDATABLE_TOURNAMENT_FIELDS) {
+        if (req.body[field] !== undefined) updated_data[field] = req.body[field];
+    }
+
+    if (Object.keys(updated_data).length === 0) {
+        return res.status(400).json({ message: 'Không có trường hợp lệ nào để cập nhật' });
+    }
 
     try {
+        // Nếu chỉ gửi một trong hai mốc thời gian, đối chiếu với giá trị đang lưu
+        // để không tạo ra giải kết thúc trước khi bắt đầu.
+        if (updated_data.start_date || updated_data.end_date) {
+            const current = await tournament_model.findOne({ id: tournament_id });
+            if (!current) {
+                return res.status(404).json({ message: 'Tournament not found' });
+            }
+            const start = new Date(updated_data.start_date || current.start_date);
+            const end = new Date(updated_data.end_date || current.end_date);
+            if (end < start) {
+                return res.status(400).json({
+                    message: 'Ngày kết thúc phải sau hoặc bằng ngày bắt đầu'
+                });
+            }
+        }
+
         const updated_tournament = await tournament_model.findOneAndUpdate(
             {id: tournament_id},       // Match by tournament id (not _id)
             {$set: updated_data},       // Update with new values
-            {new: true}                // Return the updated document
+            // runValidators: mặc định findOneAndUpdate KHÔNG chạy validator, nên
+            // trước đây participants: -500 vẫn được ghi dù schema có min: 2.
+            {new: true, runValidators: true}
         );
-    
+
         if (!updated_tournament) {
             return res.status(404).json({message: 'Tournament not found'});
         }
-  
+
         res.status(200).json(updated_tournament);
     } catch (err) {
         console.error('[ERROR][updateTournament]:', err);
-        res.status(500).json({message: 'Failed to update tournament'});
+        sendMongooseError(res, err, 'Failed to update tournament');
     }
 };
   

@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
 import styles from './CreateTournament.module.css';
+import { isUrl, checkRequired, getServerError } from '../utils/validation';
+
+const REQUIRED_FIELDS = ['title', 'content', 'image', 'link'];
 
 function CreateNewsPage() {
 
@@ -19,12 +22,13 @@ function CreateNewsPage() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    const newErrors = {};
+    const newErrors = checkRequired(formData, REQUIRED_FIELDS);
 
-    if (!formData.title)   newErrors.title = "Không được để trống";
-    if (!formData.content) newErrors.content = "Không được để trống";
-    if (!formData.image)   newErrors.image = "Không được để trống";
-    if (!formData.link)    newErrors.link = "Không được để trống";
+    if (formData.image && !isUrl(formData.image))
+      newErrors.image = "Ảnh phải là đường dẫn http(s) hợp lệ";
+
+    if (formData.link && !isUrl(formData.link))
+      newErrors.link = "Đường dẫn liên kết phải là http(s) hợp lệ";
 
     setErrors(newErrors);
 
@@ -38,10 +42,12 @@ function CreateNewsPage() {
           }
         });
 
-        alert('News created!');
+        alert('Tạo tin tức thành công!');
       } catch (err) {
         console.error(err);
-        alert('Failed to create news');
+        const { message, errors: fieldErrors } = getServerError(err, 'Tạo tin tức thất bại');
+        setErrors(prev => ({ ...prev, ...fieldErrors }));
+        alert(message);
       }
     }
   };

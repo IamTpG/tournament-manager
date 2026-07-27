@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import axios from 'axios';
 import styles from './CreateTournament.module.css';
+import { isUrl, checkRequired, getServerError } from '../utils/validation';
+
+const REQUIRED_FIELDS = ['title', 'description', 'image', 'URL'];
 
 function CreateHighlightPage() {
 
@@ -19,12 +22,13 @@ function CreateHighlightPage() {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    const newErrors = {};
+    const newErrors = checkRequired(formData, REQUIRED_FIELDS);
 
-    if (!formData.title)       newErrors.title = "Không được để trống";
-    if (!formData.description) newErrors.description = "Không được để trống";
-    if (!formData.image)       newErrors.image = "Không được để trống";
-    if (!formData.URL)         newErrors.URL = "Không được để trống";
+    if (formData.image && !isUrl(formData.image))
+      newErrors.image = "Ảnh phải là đường dẫn http(s) hợp lệ";
+
+    if (formData.URL && !isUrl(formData.URL))
+      newErrors.URL = "Link video phải là đường dẫn http(s) hợp lệ";
 
     setErrors(newErrors);
 
@@ -38,10 +42,12 @@ function CreateHighlightPage() {
           }
         });
 
-        alert('Highlight created!');
+        alert('Tạo highlight thành công!');
       } catch (err) {
         console.error(err);
-        alert('Failed to create highlight');
+        const { message, errors: fieldErrors } = getServerError(err, 'Tạo highlight thất bại');
+        setErrors(prev => ({ ...prev, ...fieldErrors }));
+        alert(message);
       }
     }
   };
