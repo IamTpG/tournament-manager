@@ -11,6 +11,9 @@
 
 .card-grid-wrapper {
   display: flex;
+  /* Xếp dọc: nút "tạo mới" của admin nằm TRÊN lưới thẻ. Trước đây hướng mặc định
+     là row nên nút bị đặt cạnh lưới và bị kéo giãn hết chiều cao. */
+  flex-direction: column;
   justify-content: flex-start;
   padding: 1rem;
   margin-top: 40px;

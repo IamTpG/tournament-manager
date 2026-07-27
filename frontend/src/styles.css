@@ -105,11 +105,12 @@ footer {
    báo lỗi hiển thị không đồng nhất — có chỗ còn không hiện gì.
    --------------------------------------------------------------- */
 
-/* Lỗi ngay dưới ô nhập */
+/* Lỗi ngay dưới ô nhập. Đặt margin tường minh vì thẻ <p> có margin mặc định
+   của trình duyệt (1em trên/dưới) sẽ đẩy thông báo lệch khỏi ô nhập. */
 .error-text {
   color: #ff6b6b;
   font-size: 13px;
-  margin-top: 4px;
+  margin: 4px 0 0;
 }
 
 /* Thông báo lỗi cấp trang */
@@ -134,6 +135,10 @@ footer {
    chân dính nền xanh thay vì một cái nút. */
 .create-link {
   display: inline-block;
+  /* Không cho container flex/grid kéo giãn nút ra hết chiều rộng/cao */
+  align-self: flex-start;
+  justify-self: start;
+  width: fit-content;
   margin-bottom: 1rem;
   padding: 0.45rem 0.9rem;
   background: linear-gradient(135deg, #4CAF50, #2e7d32);
