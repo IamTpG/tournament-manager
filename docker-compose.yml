@@ -1,0 +1,26 @@
+# MongoDB cho môi trường phát triển cục bộ.
+#
+#   docker compose up -d
+#
+# Dữ liệu được lưu trong volume `tournax-mongo-data` nên vẫn còn sau khi
+# container dừng hoặc bị xoá. Muốn xoá sạch dữ liệu:
+#
+#   docker compose down -v
+#
+services:
+  mongo:
+    image: mongo:7
+    container_name: tournax-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - tournax-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  tournax-mongo-data:
